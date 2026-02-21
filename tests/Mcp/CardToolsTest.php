@@ -503,4 +503,202 @@ final class CardToolsTest extends TestCase
 
         $this->tools->deleteCard(self::CARD_ID);
     }
+
+    // -------------------------------------------------------------------------
+    // duplicateCard()
+    // -------------------------------------------------------------------------
+
+    public function testDuplicateCardSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'card-new', 'name' => 'Sprint Task']];
+
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->expects($this->once())
+            ->method('duplicateCard')
+            ->with(self::API_KEY, self::CARD_ID)
+            ->willReturn($expected);
+
+        $result = $this->tools->duplicateCard(self::CARD_ID);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testDuplicateCardWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->cardService
+            ->method('duplicateCard')
+            ->willThrowException(new AuthenticationException('Unauthorized', 401));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->duplicateCard(self::CARD_ID);
+    }
+
+    public function testDuplicateCardWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->method('duplicateCard')
+            ->willThrowException(new PlankaApiException('Server error', 500));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->duplicateCard(self::CARD_ID);
+    }
+
+    public function testDuplicateCardWrapsNotFoundExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->method('duplicateCard')
+            ->willThrowException(new PlankaNotFoundException('Not found', 404));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Not found');
+
+        $this->tools->duplicateCard(self::CARD_ID);
+    }
+
+    public function testDuplicateCardMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->cardService->expects($this->never())->method('duplicateCard');
+
+        $this->expectException(ToolCallException::class);
+
+        $this->tools->duplicateCard(self::CARD_ID);
+    }
+
+    // -------------------------------------------------------------------------
+    // manageCardMemberships: add
+    // -------------------------------------------------------------------------
+
+    public function testManageCardMembershipsAddSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'mbr1', 'cardId' => self::CARD_ID, 'userId' => 'user1']];
+
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->expects($this->once())
+            ->method('addCardMember')
+            ->with(self::API_KEY, self::CARD_ID, 'user1')
+            ->willReturn($expected);
+
+        $result = $this->tools->manageCardMemberships('add', self::CARD_ID, 'user1');
+
+        $this->assertSame($expected, $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // manageCardMemberships: remove
+    // -------------------------------------------------------------------------
+
+    public function testManageCardMembershipsRemoveSuccess(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->expects($this->once())
+            ->method('removeCardMember')
+            ->with(self::API_KEY, self::CARD_ID, 'user1')
+            ->willReturn([]);
+
+        $result = $this->tools->manageCardMemberships('remove', self::CARD_ID, 'user1');
+
+        $this->assertSame([], $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // manageCardMemberships: invalid action
+    // -------------------------------------------------------------------------
+
+    public function testManageCardMembershipsInvalidActionThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn(self::API_KEY);
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Invalid action "update". Must be "add" or "remove".');
+
+        $this->tools->manageCardMemberships('update', self::CARD_ID, 'user1');
+    }
+
+    // -------------------------------------------------------------------------
+    // manageCardMemberships: missing API key + exception wrapping
+    // -------------------------------------------------------------------------
+
+    public function testManageCardMembershipsMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->cardService->expects($this->never())->method('addCardMember');
+
+        $this->expectException(ToolCallException::class);
+
+        $this->tools->manageCardMemberships('add', self::CARD_ID, 'user1');
+    }
+
+    public function testManageCardMembershipsWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->cardService
+            ->method('addCardMember')
+            ->willThrowException(new AuthenticationException('Unauthorized', 401));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->manageCardMemberships('add', self::CARD_ID, 'user1');
+    }
+
+    public function testManageCardMembershipsWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->method('removeCardMember')
+            ->willThrowException(new PlankaApiException('Server error', 500));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->manageCardMemberships('remove', self::CARD_ID, 'user1');
+    }
+
+    public function testManageCardMembershipsWrapsNotFoundExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn(self::API_KEY);
+
+        $this->cardService
+            ->method('addCardMember')
+            ->willThrowException(new PlankaNotFoundException('Not found', 404));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Not found');
+
+        $this->tools->manageCardMemberships('add', self::CARD_ID, 'user1');
+    }
 }

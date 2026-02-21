@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Domain\Label;
 
 use App\Domain\Label\LabelService;
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 use App\Planka\Exception\AuthenticationException;
 use App\Planka\Exception\PlankaApiException;
 use App\Shared\Exception\ValidationException;
@@ -14,12 +14,12 @@ use PHPUnit\Framework\TestCase;
 
 final class LabelServiceTest extends TestCase
 {
-    private PlankaClient&MockObject $plankaClient;
+    private PlankaClientInterface&MockObject $plankaClient;
     private LabelService $service;
 
     protected function setUp(): void
     {
-        $this->plankaClient = $this->createMock(PlankaClient::class);
+        $this->plankaClient = $this->createMock(PlankaClientInterface::class);
         $this->service = new LabelService($this->plankaClient);
     }
 
@@ -217,13 +217,13 @@ final class LabelServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/cards/card1/labels', ['labelId' => 'label1'])
+            ->with('test-api-key', '/api/cards/card1/card-labels', ['labelId' => 'label1'])
             ->willReturn($addResponse);
 
         $this->plankaClient
             ->expects($this->once())
             ->method('delete')
-            ->with('test-api-key', '/api/cards/card1/labels/label2')
+            ->with('test-api-key', '/api/cards/card1/card-labels/labelId:label2')
             ->willReturn($removeResponse);
 
         $result = $this->service->setCardLabels(

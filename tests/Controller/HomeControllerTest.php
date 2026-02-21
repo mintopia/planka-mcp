@@ -30,7 +30,7 @@ final class HomeControllerTest extends WebTestCase
         $client->request('GET', '/');
 
         $content = (string) $client->getResponse()->getContent();
-        $this->assertStringContainsString('/_mcp', $content);
+        $this->assertStringContainsString('/mcp', $content);
     }
 
     public function testHomePageContainsPlankaMcpHeading(): void
@@ -93,6 +93,6 @@ final class HomeControllerTest extends WebTestCase
         $client->request('GET', '/');
 
         $content = (string) $client->getResponse()->getContent();
-        $this->assertStringContainsString('http://localhost/_mcp', $content);
+        $this->assertStringContainsString('http://localhost/mcp', $content);
     }
 }

@@ -7,6 +7,9 @@
 /config/reference.php
 /public/bundles/
 /var/
+!/var/uploads/
+/var/uploads/*
+!/var/uploads/.gitkeep
 /vendor/
 /.idea/
 /.DS_Store

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Task;
 
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 
 final class TaskService
 {
     public function __construct(
-        private readonly PlankaClient $plankaClient,
+        private readonly PlankaClientInterface $plankaClient,
     ) {}
 
     /**
@@ -68,5 +68,21 @@ final class TaskService
     public function deleteTask(string $apiKey, string $taskId): array
     {
         return $this->plankaClient->delete($apiKey, '/api/tasks/' . $taskId);
+    }
+
+    /** @return array<mixed> */
+    public function updateTaskList(string $apiKey, string $taskListId, ?string $name): array
+    {
+        $body = [];
+        if ($name !== null) {
+            $body['name'] = $name;
+        }
+        return $this->plankaClient->patch($apiKey, '/api/task-lists/' . $taskListId, $body);
+    }
+
+    /** @return array<mixed> */
+    public function deleteTaskList(string $apiKey, string $taskListId): array
+    {
+        return $this->plankaClient->delete($apiKey, '/api/task-lists/' . $taskListId);
     }
 }

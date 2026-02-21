@@ -304,4 +304,177 @@ final class TaskToolsTest extends TestCase
 
         $this->tools->deleteTask('task1');
     }
+
+    // --- updateTaskList ---
+
+    public function testUpdateTaskListSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'tl1', 'name' => 'New Name']];
+
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn('test-api-key');
+
+        $this->taskService
+            ->expects($this->once())
+            ->method('updateTaskList')
+            ->with('test-api-key', 'tl1', 'New Name')
+            ->willReturn($expected);
+
+        $result = $this->tools->updateTaskList('tl1', 'New Name');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testUpdateTaskListWithNullNameSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'tl1']];
+
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->taskService
+            ->expects($this->once())
+            ->method('updateTaskList')
+            ->with('test-api-key', 'tl1', null)
+            ->willReturn($expected);
+
+        $result = $this->tools->updateTaskList('tl1');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testUpdateTaskListMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->taskService->expects($this->never())->method('updateTaskList');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Planka API key required.');
+
+        $this->tools->updateTaskList('tl1', 'Name');
+    }
+
+    public function testUpdateTaskListWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->taskService
+            ->method('updateTaskList')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->updateTaskList('tl1', 'Name');
+    }
+
+    public function testUpdateTaskListWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->taskService
+            ->method('updateTaskList')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->updateTaskList('tl1', 'Name');
+    }
+
+    public function testUpdateTaskListWrapsNotFoundExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->taskService
+            ->method('updateTaskList')
+            ->willThrowException(new PlankaNotFoundException('Not found', 404));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Not found');
+
+        $this->tools->updateTaskList('tl1', 'Name');
+    }
+
+    // --- deleteTaskList ---
+
+    public function testDeleteTaskListSuccess(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn('test-api-key');
+
+        $this->taskService
+            ->expects($this->once())
+            ->method('deleteTaskList')
+            ->with('test-api-key', 'tl1')
+            ->willReturn([]);
+
+        $result = $this->tools->deleteTaskList('tl1');
+
+        $this->assertSame([], $result);
+    }
+
+    public function testDeleteTaskListMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->taskService->expects($this->never())->method('deleteTaskList');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Planka API key required.');
+
+        $this->tools->deleteTaskList('tl1');
+    }
+
+    public function testDeleteTaskListWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->taskService
+            ->method('deleteTaskList')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->deleteTaskList('tl1');
+    }
+
+    public function testDeleteTaskListWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->taskService
+            ->method('deleteTaskList')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->deleteTaskList('tl1');
+    }
+
+    public function testDeleteTaskListWrapsNotFoundExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->taskService
+            ->method('deleteTaskList')
+            ->willThrowException(new PlankaNotFoundException('Not found', 404));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Not found');
+
+        $this->tools->deleteTaskList('tl1');
+    }
 }

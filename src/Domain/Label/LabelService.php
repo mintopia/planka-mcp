@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Label;
 
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 use App\Shared\Exception\ValidationException;
 
 final class LabelService
 {
     public function __construct(
-        private readonly PlankaClient $plankaClient,
+        private readonly PlankaClientInterface $plankaClient,
     ) {}
 
     /** @return array<mixed> */
@@ -75,10 +75,10 @@ final class LabelService
     ): array {
         $results = [];
         foreach ($addLabelIds as $labelId) {
-            $results['added'][] = $this->plankaClient->post($apiKey, '/api/cards/' . $cardId . '/labels', ['labelId' => $labelId]);
+            $results['added'][] = $this->plankaClient->post($apiKey, '/api/cards/' . $cardId . '/card-labels', ['labelId' => $labelId]);
         }
         foreach ($removeLabelIds as $labelId) {
-            $results['removed'][] = $this->plankaClient->delete($apiKey, '/api/cards/' . $cardId . '/labels/' . $labelId);
+            $results['removed'][] = $this->plankaClient->delete($apiKey, '/api/cards/' . $cardId . '/card-labels/labelId:' . $labelId);
         }
         return $results;
     }

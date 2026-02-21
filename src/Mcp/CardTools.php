@@ -108,4 +108,38 @@ final class CardTools
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }
     }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_duplicate_card', description: 'Duplicate an existing card, copying its content to a new card in the same list.')]
+    public function duplicateCard(
+        #[Schema(description: 'The card ID to duplicate (from planka_get_board or planka_get_card)')] string $cardId,
+    ): array {
+        try {
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return $this->cardService->duplicateCard($apiKey, $cardId);
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_manage_card_membership', description: 'Add or remove a user as a member of a card.')]
+    public function manageCardMemberships(
+        #[Schema(description: 'Action to perform: "add" to add a member, "remove" to remove a member', enum: ['add', 'remove'])] string $action,
+        #[Schema(description: 'The card ID (from planka_get_board or planka_get_card)')] string $cardId,
+        #[Schema(description: 'The user ID to add or remove')] string $userId,
+    ): array {
+        try {
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return match ($action) {
+                'add' => $this->cardService->addCardMember($apiKey, $cardId, $userId),
+                'remove' => $this->cardService->removeCardMember($apiKey, $cardId, $userId),
+                default => throw new ValidationException('Invalid action "' . $action . '". Must be "add" or "remove".'),
+            };
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 }

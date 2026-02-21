@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Card;
 
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 
 final class CardService
 {
     public function __construct(
-        private readonly PlankaClient $plankaClient,
+        private readonly PlankaClientInterface $plankaClient,
     ) {}
 
     /**
@@ -38,7 +38,7 @@ final class CardService
             $cardId = (string) ($result['item']['id'] ?? '');
             if ($cardId !== '') {
                 foreach ($labelIds as $labelId) {
-                    $this->plankaClient->post($apiKey, '/api/cards/' . $cardId . '/labels', ['labelId' => $labelId]);
+                    $this->plankaClient->post($apiKey, '/api/cards/' . $cardId . '/card-labels', ['labelId' => $labelId]);
                 }
             }
         }
@@ -103,5 +103,23 @@ final class CardService
     public function deleteCard(string $apiKey, string $cardId): array
     {
         return $this->plankaClient->delete($apiKey, '/api/cards/' . $cardId);
+    }
+
+    /** @return array<mixed> */
+    public function duplicateCard(string $apiKey, string $cardId): array
+    {
+        return $this->plankaClient->post($apiKey, '/api/cards/' . $cardId . '/duplicate', []);
+    }
+
+    /** @return array<mixed> */
+    public function addCardMember(string $apiKey, string $cardId, string $userId): array
+    {
+        return $this->plankaClient->post($apiKey, '/api/cards/' . $cardId . '/memberships', ['userId' => $userId]);
+    }
+
+    /** @return array<mixed> */
+    public function removeCardMember(string $apiKey, string $cardId, string $userId): array
+    {
+        return $this->plankaClient->delete($apiKey, '/api/cards/' . $cardId . '/memberships/userId:' . $userId);
     }
 }

@@ -507,4 +507,156 @@ final class PlankaClientTest extends TestCase
 
         $client->get(self::API_KEY, '/api/boards');
     }
+
+    // -------------------------------------------------------------------------
+    // postMultipart() — validation paths
+    // -------------------------------------------------------------------------
+
+    public function testPostMultipartThrowsValidationExceptionOnPathTraversal(): void
+    {
+        $httpClient = new MockHttpClient([], self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Invalid resource path.');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/../../admin/attachments', [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartThrowsValidationExceptionOnNullByteInPath(): void
+    {
+        $httpClient = new MockHttpClient([], self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Invalid resource path.');
+
+        $client->postMultipart(self::API_KEY, "/api/cards/card\0id/attachments", [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartThrowsValidationExceptionOnNullByteInFilePath(): void
+    {
+        $httpClient = new MockHttpClient([], self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Invalid file path.');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], "/tmp/fi\0le.pdf", 'file.pdf');
+    }
+
+    // -------------------------------------------------------------------------
+    // postMultipart() — HTTP response paths
+    // -------------------------------------------------------------------------
+
+    public function testPostMultipartReturnsDecodedArrayOnSuccess(): void
+    {
+        $payload = ['item' => ['id' => 'att1', 'name' => 'report.pdf']];
+        $mockResponse = new MockResponse(
+            (string) json_encode($payload),
+            ['http_code' => 200],
+        );
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $result = $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'report.pdf');
+
+        $this->assertSame($payload, $result);
+    }
+
+    public function testPostMultipartReturnsEmptyArrayOn204(): void
+    {
+        $mockResponse = new MockResponse('', ['http_code' => 204]);
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $result = $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+
+        $this->assertSame([], $result);
+    }
+
+    public function testPostMultipartThrowsAuthenticationExceptionOn401(): void
+    {
+        $mockResponse = new MockResponse('', ['http_code' => 401]);
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Invalid or missing Planka API key.');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartThrowsPlankaNotFoundExceptionOn404(): void
+    {
+        $mockResponse = new MockResponse('', ['http_code' => 404]);
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(PlankaNotFoundException::class);
+        $this->expectExceptionMessage('Planka resource not found: /api/cards/card1/attachments');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartThrowsPlankaApiExceptionOn4xx(): void
+    {
+        $mockResponse = new MockResponse('', ['http_code' => 422]);
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(PlankaApiException::class);
+        $this->expectExceptionMessage('Planka API client error 422');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartThrowsPlankaApiExceptionOn5xx(): void
+    {
+        $mockResponse = new MockResponse('', ['http_code' => 500]);
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(PlankaApiException::class);
+        $this->expectExceptionMessage('Planka API returned server error 500 for /api/cards/card1/attachments');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartThrowsPlankaApiExceptionOnNetworkFailure(): void
+    {
+        $mockResponse = new MockResponse('', ['error' => 'Connection refused']);
+        $httpClient = new MockHttpClient($mockResponse, self::PLANKA_URL);
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $this->expectException(PlankaApiException::class);
+        $this->expectExceptionMessage('Unable to connect to Planka API.');
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+    }
+
+    public function testPostMultipartSetsXApiKeyHeader(): void
+    {
+        $capturedOptions = [];
+        $httpClient = new MockHttpClient(
+            function (string $method, string $url, array $options) use (&$capturedOptions): MockResponse {
+                $capturedOptions = $options;
+
+                return new MockResponse(
+                    (string) json_encode(['item' => ['id' => 'att1']]),
+                    ['http_code' => 200],
+                );
+            },
+            self::PLANKA_URL,
+        );
+        $client = new PlankaClient($httpClient, self::PLANKA_URL);
+
+        $client->postMultipart(self::API_KEY, '/api/cards/card1/attachments', [], '/tmp/file.pdf', 'file.pdf');
+
+        $this->assertArrayHasKey('x-api-key', $capturedOptions['normalized_headers']);
+        $this->assertSame(
+            'X-Api-Key: ' . self::API_KEY,
+            $capturedOptions['normalized_headers']['x-api-key'][0],
+        );
+    }
 }

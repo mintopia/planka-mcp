@@ -237,4 +237,182 @@ final class CommentToolsTest extends TestCase
 
         $this->tools->getComments('card1');
     }
+
+    // --- updateComment ---
+
+    public function testUpdateCommentSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'comment1', 'data' => ['text' => 'Updated']]];
+
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn('test-api-key');
+
+        $this->commentService
+            ->expects($this->once())
+            ->method('updateComment')
+            ->with('test-api-key', 'comment1', 'Updated')
+            ->willReturn($expected);
+
+        $result = $this->tools->updateComment('comment1', 'Updated');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testUpdateCommentWithEmptyTextThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider->expects($this->never())->method('getApiKey');
+        $this->commentService->expects($this->never())->method('updateComment');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Comment text cannot be empty.');
+
+        $this->tools->updateComment('comment1', '');
+    }
+
+    public function testUpdateCommentWithWhitespaceOnlyTextThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider->expects($this->never())->method('getApiKey');
+        $this->commentService->expects($this->never())->method('updateComment');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Comment text cannot be empty.');
+
+        $this->tools->updateComment('comment1', '   ');
+    }
+
+    public function testUpdateCommentMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->commentService->expects($this->never())->method('updateComment');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Planka API key required.');
+
+        $this->tools->updateComment('comment1', 'text');
+    }
+
+    public function testUpdateCommentWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->commentService
+            ->method('updateComment')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->updateComment('comment1', 'text');
+    }
+
+    public function testUpdateCommentWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->commentService
+            ->method('updateComment')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->updateComment('comment1', 'text');
+    }
+
+    public function testUpdateCommentWrapsNotFoundExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->commentService
+            ->method('updateComment')
+            ->willThrowException(new PlankaNotFoundException('Not found', 404));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Not found');
+
+        $this->tools->updateComment('comment1', 'text');
+    }
+
+    // --- deleteComment ---
+
+    public function testDeleteCommentSuccess(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn('test-api-key');
+
+        $this->commentService
+            ->expects($this->once())
+            ->method('deleteComment')
+            ->with('test-api-key', 'comment1')
+            ->willReturn([]);
+
+        $result = $this->tools->deleteComment('comment1');
+
+        $this->assertSame([], $result);
+    }
+
+    public function testDeleteCommentMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->commentService->expects($this->never())->method('deleteComment');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Planka API key required.');
+
+        $this->tools->deleteComment('comment1');
+    }
+
+    public function testDeleteCommentWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->commentService
+            ->method('deleteComment')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->deleteComment('comment1');
+    }
+
+    public function testDeleteCommentWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->commentService
+            ->method('deleteComment')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->deleteComment('comment1');
+    }
+
+    public function testDeleteCommentWrapsNotFoundExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->commentService
+            ->method('deleteComment')
+            ->willThrowException(new PlankaNotFoundException('Not found', 404));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Not found');
+
+        $this->tools->deleteComment('comment1');
+    }
 }

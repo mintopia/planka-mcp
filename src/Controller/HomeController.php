@@ -14,7 +14,7 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'home', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
-        $mcpUrl = $request->getSchemeAndHttpHost() . '/_mcp';
+        $mcpUrl = $request->getSchemeAndHttpHost() . '/mcp';
 
         $response = $this->render('home.html.twig', [
             'mcpUrl' => $mcpUrl,

@@ -5,7 +5,7 @@ mcp:
     client_transports:
         http: true
     http:
-        path: '/_mcp'
+        path: '/mcp'
         session:
             # File store is required because production Caddyfile runs 4 FrankenPHP workers.
             # MCP Streamable HTTP sessions span multiple requests (initialize creates session,

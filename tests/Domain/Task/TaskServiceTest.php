@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Domain\Task;
 
 use App\Domain\Task\TaskService;
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 use App\Planka\Exception\AuthenticationException;
 use App\Planka\Exception\PlankaApiException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -13,12 +13,12 @@ use PHPUnit\Framework\TestCase;
 
 final class TaskServiceTest extends TestCase
 {
-    private PlankaClient&MockObject $plankaClient;
+    private PlankaClientInterface&MockObject $plankaClient;
     private TaskService $service;
 
     protected function setUp(): void
     {
-        $this->plankaClient = $this->createMock(PlankaClient::class);
+        $this->plankaClient = $this->createMock(PlankaClientInterface::class);
         $this->service = new TaskService($this->plankaClient);
     }
 
@@ -214,5 +214,96 @@ final class TaskServiceTest extends TestCase
         $this->expectException(PlankaApiException::class);
 
         $this->service->deleteTask('test-api-key', 'task123');
+    }
+
+    // --- updateTaskList ---
+
+    public function testUpdateTaskListWithName(): void
+    {
+        $expected = ['item' => ['id' => 'tl1', 'name' => 'New Name']];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('patch')
+            ->with('test-api-key', '/api/task-lists/tl1', ['name' => 'New Name'])
+            ->willReturn($expected);
+
+        $result = $this->service->updateTaskList('test-api-key', 'tl1', 'New Name');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testUpdateTaskListWithNullNameSendsEmptyBody(): void
+    {
+        $expected = ['item' => ['id' => 'tl1']];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('patch')
+            ->with('test-api-key', '/api/task-lists/tl1', [])
+            ->willReturn($expected);
+
+        $result = $this->service->updateTaskList('test-api-key', 'tl1', null);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testUpdateTaskListPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('patch')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->updateTaskList('bad-key', 'tl1', 'Name');
+    }
+
+    public function testUpdateTaskListPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('patch')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->updateTaskList('test-api-key', 'tl1', 'Name');
+    }
+
+    // --- deleteTaskList ---
+
+    public function testDeleteTaskList(): void
+    {
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('delete')
+            ->with('test-api-key', '/api/task-lists/tl1')
+            ->willReturn([]);
+
+        $result = $this->service->deleteTaskList('test-api-key', 'tl1');
+
+        $this->assertSame([], $result);
+    }
+
+    public function testDeleteTaskListPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('delete')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->deleteTaskList('bad-key', 'tl1');
+    }
+
+    public function testDeleteTaskListPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('delete')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->deleteTaskList('test-api-key', 'tl1');
     }
 }

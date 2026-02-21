@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Domain\Card;
 
 use App\Domain\Card\CardService;
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 use App\Planka\Exception\AuthenticationException;
 use App\Planka\Exception\PlankaApiException;
 use App\Planka\Exception\PlankaNotFoundException;
@@ -18,12 +18,12 @@ final class CardServiceTest extends TestCase
     private const string CARD_ID = 'card-abc123';
     private const string LIST_ID = 'list-xyz789';
 
-    private PlankaClient&MockObject $plankaClient;
+    private PlankaClientInterface&MockObject $plankaClient;
     private CardService $service;
 
     protected function setUp(): void
     {
-        $this->plankaClient = $this->createMock(PlankaClient::class);
+        $this->plankaClient = $this->createMock(PlankaClientInterface::class);
         $this->service = new CardService($this->plankaClient);
     }
 
@@ -153,7 +153,7 @@ final class CardServiceTest extends TestCase
                         $this->assertSame(['name' => 'Card With Labels'], $body);
                         return $cardResponse;
                     }
-                    $this->assertStringStartsWith('/api/cards/' . self::CARD_ID . '/labels', $path);
+                    $this->assertStringStartsWith('/api/cards/' . self::CARD_ID . '/card-labels', $path);
                     $this->assertArrayHasKey('labelId', $body);
                     return [];
                 },
@@ -687,5 +687,137 @@ final class CardServiceTest extends TestCase
         $this->expectException(PlankaNotFoundException::class);
 
         $this->service->deleteCard(self::API_KEY, self::CARD_ID);
+    }
+
+    // -------------------------------------------------------------------------
+    // duplicateCard()
+    // -------------------------------------------------------------------------
+
+    public function testDuplicateCardCallsCorrectEndpoint(): void
+    {
+        $expected = ['item' => ['id' => 'card-new', 'name' => 'Sprint Task']];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/duplicate', [])
+            ->willReturn($expected);
+
+        $result = $this->service->duplicateCard(self::API_KEY, self::CARD_ID);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testDuplicateCardPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new AuthenticationException('Invalid or missing Planka API key.', 401));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->duplicateCard(self::API_KEY, self::CARD_ID);
+    }
+
+    public function testDuplicateCardPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaApiException('Server error', 500));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->duplicateCard(self::API_KEY, self::CARD_ID);
+    }
+
+    public function testDuplicateCardPropagatesNotFoundException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaNotFoundException('Planka resource not found: /api/cards/' . self::CARD_ID . '/duplicate', 404));
+
+        $this->expectException(PlankaNotFoundException::class);
+
+        $this->service->duplicateCard(self::API_KEY, self::CARD_ID);
+    }
+
+    // -------------------------------------------------------------------------
+    // addCardMember()
+    // -------------------------------------------------------------------------
+
+    public function testAddCardMemberCallsCorrectEndpoint(): void
+    {
+        $expected = ['item' => ['id' => 'mbr1', 'cardId' => self::CARD_ID, 'userId' => 'user1']];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/memberships', ['userId' => 'user1'])
+            ->willReturn($expected);
+
+        $result = $this->service->addCardMember(self::API_KEY, self::CARD_ID, 'user1');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testAddCardMemberPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new AuthenticationException('Invalid or missing Planka API key.', 401));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->addCardMember(self::API_KEY, self::CARD_ID, 'user1');
+    }
+
+    public function testAddCardMemberPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaApiException('Server error', 500));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->addCardMember(self::API_KEY, self::CARD_ID, 'user1');
+    }
+
+    // -------------------------------------------------------------------------
+    // removeCardMember()
+    // -------------------------------------------------------------------------
+
+    public function testRemoveCardMemberCallsCorrectEndpoint(): void
+    {
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('delete')
+            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/memberships/userId:user1')
+            ->willReturn([]);
+
+        $result = $this->service->removeCardMember(self::API_KEY, self::CARD_ID, 'user1');
+
+        $this->assertSame([], $result);
+    }
+
+    public function testRemoveCardMemberPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('delete')
+            ->willThrowException(new AuthenticationException('Invalid or missing Planka API key.', 401));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->removeCardMember(self::API_KEY, self::CARD_ID, 'user1');
+    }
+
+    public function testRemoveCardMemberPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('delete')
+            ->willThrowException(new PlankaApiException('Server error', 500));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->removeCardMember(self::API_KEY, self::CARD_ID, 'user1');
     }
 }

@@ -49,4 +49,36 @@ final class CommentTools
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }
     }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_update_comment', description: 'Update the text of an existing comment on a card.')]
+    public function updateComment(
+        #[Schema(description: 'The comment ID to update')] string $commentId,
+        #[Schema(description: 'New comment text (markdown supported)')] string $text,
+    ): array {
+        try {
+            if (trim($text) === '') {
+                throw new ValidationException('Comment text cannot be empty.');
+            }
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return $this->commentService->updateComment($apiKey, $commentId, $text);
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_delete_comment', description: 'Delete a comment from a card.')]
+    public function deleteComment(
+        #[Schema(description: 'The comment ID to delete')] string $commentId,
+    ): array {
+        try {
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return $this->commentService->deleteComment($apiKey, $commentId);
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 }

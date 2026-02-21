@@ -17,3 +17,7 @@ services:
     App\Planka\Client\PlankaClient:
         arguments:
             $plankaUrl: '%planka_url%'
+
+    App\Mcp\AttachmentTools:
+        arguments:
+            $uploadDir: '%kernel.project_dir%/var/uploads'

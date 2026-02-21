@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Domain\BoardList;
 
 use App\Domain\BoardList\ListService;
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 use App\Planka\Exception\AuthenticationException;
 use App\Planka\Exception\PlankaApiException;
 use App\Shared\Exception\ValidationException;
@@ -14,12 +14,12 @@ use PHPUnit\Framework\TestCase;
 
 final class ListServiceTest extends TestCase
 {
-    private PlankaClient&MockObject $plankaClient;
+    private PlankaClientInterface&MockObject $plankaClient;
     private ListService $service;
 
     protected function setUp(): void
     {
-        $this->plankaClient = $this->createMock(PlankaClient::class);
+        $this->plankaClient = $this->createMock(PlankaClientInterface::class);
         $this->service = new ListService($this->plankaClient);
     }
 
@@ -167,12 +167,46 @@ final class ListServiceTest extends TestCase
         );
     }
 
+    // --- manageList: get ---
+
+    public function testManageListGetSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'list1', 'name' => 'To Do']];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('get')
+            ->with('test-api-key', '/api/lists/list1')
+            ->willReturn($expected);
+
+        $result = $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'get',
+            listId: 'list1',
+        );
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testManageListGetWithoutListIdThrowsValidationException(): void
+    {
+        $this->plankaClient->expects($this->never())->method('get');
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('listId required for get');
+
+        $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'get',
+        );
+    }
+
     // --- manageList: invalid action ---
 
     public function testManageListInvalidActionThrowsValidationException(): void
     {
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('Invalid action "reorder". Must be: create, update, delete');
+        $this->expectExceptionMessage('Invalid action "reorder". Must be: create, update, delete, get');
 
         $this->service->manageList(
             apiKey: 'test-api-key',
@@ -240,5 +274,98 @@ final class ListServiceTest extends TestCase
             action: 'create',
             boardId: 'board1',
         );
+    }
+
+    public function testManageListGetPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('get')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'get',
+            listId: 'list1',
+        );
+    }
+
+    // --- getList ---
+
+    public function testGetListSuccess(): void
+    {
+        $expected = ['item' => ['id' => 'list1', 'name' => 'To Do']];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('get')
+            ->with('test-api-key', '/api/lists/list1')
+            ->willReturn($expected);
+
+        $result = $this->service->getList('test-api-key', 'list1');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetListPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('get')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->getList('bad-key', 'list1');
+    }
+
+    public function testGetListPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('get')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->getList('test-api-key', 'list1');
+    }
+
+    // --- sortList ---
+
+    public function testSortListSuccess(): void
+    {
+        $expected = ['items' => [['id' => 'card1'], ['id' => 'card2']]];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with('test-api-key', '/api/lists/list1/sort', ['field' => 'name'])
+            ->willReturn($expected);
+
+        $result = $this->service->sortList('test-api-key', 'list1', 'name');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testSortListPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->sortList('bad-key', 'list1', 'name');
+    }
+
+    public function testSortListPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->sortList('test-api-key', 'list1', 'name');
     }
 }

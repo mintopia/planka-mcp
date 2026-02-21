@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\BoardList;
 
-use App\Planka\Client\PlankaClient;
+use App\Planka\Client\PlankaClientInterface;
 use App\Shared\Exception\ValidationException;
 
 final class ListService
 {
     public function __construct(
-        private readonly PlankaClient $plankaClient,
+        private readonly PlankaClientInterface $plankaClient,
     ) {}
 
     /** @return array<mixed> */
@@ -26,8 +26,21 @@ final class ListService
             'create' => $this->createList($apiKey, $boardId ?? throw new ValidationException('boardId required for create'), $name, $position),
             'update' => $this->updateList($apiKey, $listId ?? throw new ValidationException('listId required for update'), $name, $position),
             'delete' => $this->deleteList($apiKey, $listId ?? throw new ValidationException('listId required for delete')),
-            default => throw new ValidationException(sprintf('Invalid action "%s". Must be: create, update, delete', $action)),
+            'get' => $this->getList($apiKey, $listId ?? throw new ValidationException('listId required for get')),
+            default => throw new ValidationException(sprintf('Invalid action "%s". Must be: create, update, delete, get', $action)),
         };
+    }
+
+    /** @return array<mixed> */
+    public function getList(string $apiKey, string $listId): array
+    {
+        return $this->plankaClient->get($apiKey, '/api/lists/' . $listId);
+    }
+
+    /** @return array<mixed> */
+    public function sortList(string $apiKey, string $listId, string $field): array
+    {
+        return $this->plankaClient->post($apiKey, '/api/lists/' . $listId . '/sort', ['field' => $field]);
     }
 
     /** @return array<mixed> */

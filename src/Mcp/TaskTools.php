@@ -68,4 +68,33 @@ final class TaskTools
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }
     }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_update_task_list', description: "Update a task list's name.")]
+    public function updateTaskList(
+        #[Schema(description: 'The task list ID to update')] string $taskListId,
+        #[Schema(description: 'New task list name')] ?string $name = null,
+    ): array {
+        try {
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return $this->taskService->updateTaskList($apiKey, $taskListId, $name);
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_delete_task_list', description: 'Delete a task list and all its tasks from a card.')]
+    public function deleteTaskList(
+        #[Schema(description: 'The task list ID to delete')] string $taskListId,
+    ): array {
+        try {
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return $this->taskService->deleteTaskList($apiKey, $taskListId);
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 }

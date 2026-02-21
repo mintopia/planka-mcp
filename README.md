@@ -8,23 +8,92 @@ Built with Symfony 7 and FrankenPHP, running in worker mode inside Docker. Multi
 
 ## Tools
 
+### Structure
+
 | Tool | Description |
 |---|---|
-| `planka_get_structure` | List all projects with their boards and lists |
-| `planka_get_board` | Get a board with all lists, cards, and labels |
-| `planka_create_card` | Create a card, optionally attaching labels |
-| `planka_get_card` | Get full card details including tasks, comments, and labels |
+| `planka_get_structure` | Get all projects with their boards and lists |
+| `planka_get_board` | Get a board with all its lists, cards, and labels |
+
+### Projects
+
+| Tool | Description |
+|---|---|
+| `planka_manage_projects` | Create, get, update, or delete a project |
+| `planka_manage_project_managers` | Add or remove a project manager |
+
+### Boards
+
+| Tool | Description |
+|---|---|
+| `planka_manage_boards` | Create, get, update, or delete a board within a project |
+| `planka_manage_board_memberships` | Add, update, or remove board memberships |
+
+### Lists
+
+| Tool | Description |
+|---|---|
+| `planka_manage_lists` | Create, get, update, or delete a list on a board |
+| `planka_sort_list` | Sort cards within a list by a specified field |
+
+### Cards
+
+| Tool | Description |
+|---|---|
+| `planka_create_card` | Create a new card, optionally with tasks |
+| `planka_get_card` | Get full card details including tasks, comments, labels, and attachments |
 | `planka_update_card` | Update a card's name, description, due date, or completion status |
 | `planka_move_card` | Move a card to a different list or position |
 | `planka_delete_card` | Permanently delete a card |
-| `planka_create_tasks` | Add checklist items to a card |
-| `planka_update_task` | Rename or complete/uncomplete a task |
-| `planka_delete_task` | Remove a task from a card |
+| `planka_duplicate_card` | Duplicate an existing card into the same list |
+| `planka_manage_card_membership` | Add or remove a user as a member of a card |
+
+### Labels
+
+| Tool | Description |
+|---|---|
 | `planka_manage_labels` | Create, update, or delete labels on a board |
 | `planka_set_card_labels` | Add or remove labels from a card |
-| `planka_manage_lists` | Create, update, or delete lists on a board |
-| `planka_add_comment` | Add a comment to a card |
+
+### Tasks
+
+| Tool | Description |
+|---|---|
+| `planka_create_tasks` | Add one or more checklist items to a card |
+| `planka_update_task` | Update a task's name or completion status |
+| `planka_delete_task` | Delete a task from a card |
+| `planka_update_task_list` | Update a task list's name |
+| `planka_delete_task_list` | Delete a task list and all its tasks from a card |
+
+### Comments
+
+| Tool | Description |
+|---|---|
+| `planka_add_comment` | Add a comment to a card (markdown supported) |
 | `planka_get_comments` | Get all comments on a card |
+| `planka_update_comment` | Update the text of an existing comment |
+| `planka_delete_comment` | Delete a comment from a card |
+
+### Attachments
+
+| Tool | Description |
+|---|---|
+| `planka_upload_attachment` | Upload a file attachment to a card |
+| `planka_manage_attachments` | Update or delete an attachment on a card |
+
+### Users
+
+| Tool | Description |
+|---|---|
+| `planka_manage_users` | List, get, create, update, or delete users |
+| `planka_manage_user_credentials` | Update a user's email, password, or username |
+
+### Notifications
+
+| Tool | Description |
+|---|---|
+| `planka_get_notifications` | List all notifications for the authenticated user |
+| `planka_mark_notification_read` | Mark a notification as read or unread |
 
 ## Requirements
 
@@ -56,7 +125,7 @@ openssl rand -hex 32
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-The server listens on `http://localhost:8080`. The MCP endpoint is at `/_mcp`.
+The server listens on `http://localhost:8080`. The MCP endpoint is at `/mcp`.
 
 To pull the latest image:
 
@@ -114,7 +183,7 @@ Add the server to your Claude Code MCP configuration. The config file is `~/.cla
   "mcpServers": {
     "planka": {
       "type": "http",
-      "url": "http://localhost:8080/_mcp",
+      "url": "http://localhost:8080/mcp",
       "headers": {
         "Authorization": "Bearer <your-planka-api-key>"
       }
@@ -126,7 +195,7 @@ Add the server to your Claude Code MCP configuration. The config file is `~/.cla
 ### CLI
 
 ```bash
-claude mcp add --transport http planka http://localhost:8080/_mcp \
+claude mcp add --transport http planka http://localhost:8080/mcp \
   --header "Authorization: Bearer <your-planka-api-key>"
 ```
 
@@ -141,7 +210,7 @@ In `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or 
   "mcpServers": {
     "planka": {
       "type": "http",
-      "url": "http://localhost:8080/_mcp",
+      "url": "http://localhost:8080/mcp",
       "headers": {
         "Authorization": "Bearer <your-planka-api-key>"
       }

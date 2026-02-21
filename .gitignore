@@ -1,0 +1,13 @@
+/.env.local
+/.env.local.php
+/.env.*.local
+/.env.production
+/config/secrets/prod/prod.decrypt.private.pem
+/config/reference.php
+/public/bundles/
+/var/
+/vendor/
+/.idea/
+/.DS_Store
+*.cache
+/.env

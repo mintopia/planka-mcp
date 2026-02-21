@@ -1,0 +1,25 @@
+{
+	frankenphp
+	admin off
+	auto_https off
+}
+
+:80 {
+	# Health check - no PHP
+	handle /health {
+		respond "OK" 200
+	}
+
+	# PHP application - single worker that restarts automatically on file changes
+	handle {
+		root * /app/public
+		php_server {
+			worker {
+				file /app/public/index.php
+				num 1
+				watch /app/src/**/*.php
+				watch /app/config/**/*.{yaml,yml}
+			}
+		}
+	}
+}

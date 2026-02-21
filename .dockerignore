@@ -1,0 +1,44 @@
+# Version control
+.git
+.gitignore
+
+# IDE / editor
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Claude Code
+.claude
+
+# Docker files (not needed inside image)
+docker-compose*.yml
+.dockerignore
+
+# Dependency directory (rebuilt in image)
+/vendor
+
+# Symfony var directory (rebuilt in image)
+/var
+
+# Environment secrets - never bake into image
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.pem
+
+# Test and dev tooling
+/tests
+phpunit.xml
+phpunit.xml.dist
+phpstan.neon
+phpstan.neon.dist
+.phpstan.neon
+.phpstan.neon.dist
+
+# CI
+.github
+
+# Documentation
+*.md
+LICENSE

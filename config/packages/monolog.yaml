@@ -1,0 +1,40 @@
+monolog:
+    channels:
+        - mcp
+
+when@dev:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: 'php://stderr'
+                level: debug
+                channels: ['!event']
+            mcp:
+                type: stream
+                path: 'php://stderr'
+                level: debug
+                channels: [mcp]
+
+when@prod:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: 'php://stderr'
+                level: info
+                formatter: monolog.formatter.json
+            mcp:
+                type: stream
+                path: 'php://stderr'
+                level: info
+                channels: [mcp]
+                formatter: monolog.formatter.json
+
+when@test:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: 'php://stderr'
+                level: debug

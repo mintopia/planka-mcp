@@ -1,0 +1,8 @@
+services:
+  planka-mcp:
+    image: ghcr.io/mintopia/planka-mcp:latest
+    ports:
+      - "8080:80"
+    env_file:
+      - .env.production
+    restart: unless-stopped

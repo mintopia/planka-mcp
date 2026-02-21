@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planka MCP Server</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="badge">MCP Server</div>
+    <h1>Planka MCP</h1>
+    <p class="subtitle">Model Context Protocol server for <a href="https://planka.app" target="_blank" rel="noopener">Planka 2</a> — expose your kanban boards as AI tools for Claude and other MCP clients.</p>
+    <a href="/health" class="health-pill">Online</a>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <section>
+    <h2>Available Tools</h2>
+    <div class="tools">
+      <div class="tool">
+        <div class="tool-icon">&#128202;</div>
+        <div>
+          <div class="tool-name">planka_get_structure</div>
+          <div class="tool-desc">List all projects, boards and lists</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128243;</div>
+        <div>
+          <div class="tool-name">planka_get_board</div>
+          <div class="tool-desc">Get a board with all cards and labels</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#10133;</div>
+        <div>
+          <div class="tool-name">planka_create_card</div>
+          <div class="tool-desc">Create a card with optional labels</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128196;</div>
+        <div>
+          <div class="tool-name">planka_get_card</div>
+          <div class="tool-desc">Get card details, tasks, and comments</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#9998;</div>
+        <div>
+          <div class="tool-name">planka_update_card</div>
+          <div class="tool-desc">Update name, description, or due date</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#8651;</div>
+        <div>
+          <div class="tool-name">planka_move_card</div>
+          <div class="tool-desc">Move a card between lists</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128465;</div>
+        <div>
+          <div class="tool-name">planka_delete_card</div>
+          <div class="tool-desc">Permanently delete a card</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#9989;</div>
+        <div>
+          <div class="tool-name">planka_create_tasks</div>
+          <div class="tool-desc">Add checklist items to a card</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128221;</div>
+        <div>
+          <div class="tool-name">planka_update_task</div>
+          <div class="tool-desc">Rename or complete a task</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#127991;</div>
+        <div>
+          <div class="tool-name">planka_manage_labels</div>
+          <div class="tool-desc">Create, update, or delete labels</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128204;</div>
+        <div>
+          <div class="tool-name">planka_set_card_labels</div>
+          <div class="tool-desc">Add or remove labels from a card</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128262;</div>
+        <div>
+          <div class="tool-name">planka_manage_lists</div>
+          <div class="tool-desc">Create, update, or delete lists</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128172;</div>
+        <div>
+          <div class="tool-name">planka_add_comment</div>
+          <div class="tool-desc">Add a comment to a card</div>
+        </div>
+      </div>
+      <div class="tool">
+        <div class="tool-icon">&#128444;</div>
+        <div>
+          <div class="tool-name">planka_get_comments</div>
+          <div class="tool-desc">Get all comments on a card</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Claude Code Configuration</h2>
+    <div class="key-input-wrap">
+      <label for="api-key-input">Enter your Planka API key to populate the examples below</label>
+      <input type="password" id="api-key-input" placeholder="Paste your Planka API key…" autocomplete="off" spellcheck="false">
+    </div>
+  </section>
+
+  <section>
+    <div class="code-block">
+      <button class="copy-btn" title="Copy to clipboard" aria-label="Copy to clipboard"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
+      <div class="code-label">~/.claude/mcp.json</div>
+      <pre><span class="kw">{</span>
+  <span class="key">"mcpServers"</span>: <span class="kw">{</span>
+    <span class="key">"planka"</span>: <span class="kw">{</span>
+      <span class="key">"type"</span>: <span class="str">"http"</span>,
+      <span class="key">"url"</span>: <span class="str">"{{ mcpUrl }}"</span>,
+      <span class="key">"headers"</span>: <span class="kw">{</span>
+        <span class="key">"Authorization"</span>: <span class="str" id="json-auth">"Bearer &lt;your-planka-api-key&gt;"</span>
+      <span class="kw">}</span>
+    <span class="kw">}</span>
+  <span class="kw">}</span>
+<span class="kw">}</span></pre>
+    </div>
+    <div class="code-block">
+      <button class="copy-btn" title="Copy to clipboard" aria-label="Copy to clipboard"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
+      <div class="code-label">CLI</div>
+      <pre>claude mcp add --transport http planka {{ mcpUrl }} \
+  --header <span class="str" id="cli-auth">"Authorization: Bearer &lt;your-planka-api-key&gt;"</span></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>How It Works</h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Per-request authentication</h3>
+        <p>The Planka API key is never stored server-side. Pass it on every request via <code>Authorization: Bearer &lt;key&gt;</code> or <code>X-Api-Key: &lt;key&gt;</code>. Multiple users can share one server with their own credentials.</p>
+      </div>
+      <div class="info-card">
+        <h3>MCP endpoint</h3>
+        <p>The server speaks the Model Context Protocol over HTTP at <code>/_mcp</code>. Point any MCP-compatible client here — Claude Code, Claude Desktop, or any other tool.</p>
+      </div>
+      <div class="info-card">
+        <h3>Worker mode</h3>
+        <p>Runs under FrankenPHP in persistent worker mode — PHP boots once and stays warm, giving low-latency responses without the overhead of a traditional PHP-FPM setup.</p>
+      </div>
+      <div class="info-card">
+        <h3>Get your API key</h3>
+        <p>Log in to Planka, open <strong>Settings &#8594; API Keys</strong>, and create a new key. Treat it like a password — it grants full access to your boards on your behalf.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    Planka MCP &mdash; <a href="/_mcp" target="_blank">MCP endpoint</a> &middot; <a href="/health">Health Check</a> &middot; <a href="https://github.com/mintopia/planka-mcp" target="_blank" rel="noopener">GitHub</a>
+    <div class="footer-credit">
+      Made with
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#f783ac"><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z" /></svg>
+      by <a href="https://github.com/mintopia" target="_blank" rel="noopener">Mintopia</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

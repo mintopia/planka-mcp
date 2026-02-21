@@ -1,3 +1,4 @@
+/.env
 /.env.local
 /.env.local.php
 /.env.*.local
@@ -10,4 +11,3 @@
 /.idea/
 /.DS_Store
 *.cache
-/.env

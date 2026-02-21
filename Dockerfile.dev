@@ -1,13 +1,15 @@
 FROM dunglas/frankenphp:1-php8.3
 
-# Install system dependencies and PHP extensions
+# Install system dependencies and PHP extensions.
 # opcache is intentionally excluded: without it PHP re-reads source files from disk
-# on every worker boot, ensuring hot-reload via the Caddyfile watch directive is reliable
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# on every worker boot, ensuring hot-reload via the Caddyfile watch directive is reliable.
+# BuildKit cache mounts keep apt lists and IPE downloads between builds.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/tmp/ipe-cache,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions \
-    intl \
+    && IPE_CACHE_DIR=/tmp/ipe-cache install-php-extensions \
     xdebug
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

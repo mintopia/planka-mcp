@@ -1,11 +1,14 @@
 FROM dunglas/frankenphp:1-php8.3 AS base
 
-# Install system dependencies and required PHP extensions
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install system dependencies and required PHP extensions.
+# BuildKit cache mounts keep apt lists and IPE downloads between builds,
+# so only the first build pays the full download/compile cost.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/tmp/ipe-cache,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions \
-    intl \
+    && IPE_CACHE_DIR=/tmp/ipe-cache install-php-extensions \
     opcache
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

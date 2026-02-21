@@ -63,16 +63,8 @@
         }
     },
     "scripts": {
-        "auto-scripts": {
-            "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
-        },
-        "post-install-cmd": [
-            "@auto-scripts"
-        ],
-        "post-update-cmd": [
-            "@auto-scripts"
-        ],
+        "post-install-cmd": [],
+        "post-update-cmd": [],
         "test": "vendor/bin/phpunit",
         "test-coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html var/coverage --coverage-clover var/coverage/clover.xml",
         "analyse": "vendor/bin/phpstan analyse"

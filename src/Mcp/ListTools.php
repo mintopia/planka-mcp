@@ -18,18 +18,19 @@ final class ListTools
     ) {}
 
     /** @return array<mixed> */
-    #[McpTool(name: 'planka_manage_lists', description: 'Create, update, delete, or get a list on a board.')]
+    #[McpTool(name: 'planka_manage_lists', description: 'Create, update, delete, get, or manage cards in a list on a board.')]
     public function manageLists(
-        #[Schema(description: 'Action to perform: create, update, delete, or get', enum: ['create', 'update', 'delete', 'get'])] string $action,
+        #[Schema(description: 'Action to perform: create, update, delete, get, get_cards, move_cards, or clear', enum: ['create', 'update', 'delete', 'get', 'get_cards', 'move_cards', 'clear'])] string $action,
         #[Schema(description: 'Board ID (required for create) (from planka_get_structure or planka_get_board)')] ?string $boardId = null,
         #[Schema(description: 'List ID (required for update/delete/get) (from planka_get_board)')] ?string $listId = null,
         #[Schema(description: 'List name')] ?string $name = null,
         #[Schema(description: 'List position')] ?int $position = null,
+        #[Schema(description: 'Target list ID for move_cards action')] ?string $toListId = null,
     ): array {
         try {
             $apiKey = $this->apiKeyProvider->getApiKey();
 
-            return $this->listService->manageList($apiKey, $action, $boardId, $listId, $name, $position);
+            return $this->listService->manageList($apiKey, $action, $boardId, $listId, $name, $position, $toListId);
         } catch (\Throwable $e) {
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }

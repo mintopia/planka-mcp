@@ -44,4 +44,17 @@ final class NotificationTools
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }
     }
+
+    /** @return array<mixed> */
+    #[McpTool(name: 'planka_mark_all_notifications_read', description: 'Mark all notifications as read.')]
+    public function markAllNotificationsRead(): array
+    {
+        try {
+            $apiKey = $this->apiKeyProvider->getApiKey();
+
+            return $this->notificationService->readAllNotifications($apiKey);
+        } catch (\Throwable $e) {
+            throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 }

@@ -224,4 +224,71 @@ final class NotificationToolsTest extends TestCase
 
         $this->tools->markNotificationRead('notif1');
     }
+
+    // -------------------------------------------------------------------------
+    // markAllNotificationsRead
+    // -------------------------------------------------------------------------
+
+    public function testMarkAllNotificationsReadSuccess(): void
+    {
+        $expected = ['success' => true];
+
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willReturn('test-api-key');
+
+        $this->notificationService
+            ->expects($this->once())
+            ->method('readAllNotifications')
+            ->with('test-api-key')
+            ->willReturn($expected);
+
+        $result = $this->tools->markAllNotificationsRead();
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testMarkAllNotificationsReadMissingApiKeyThrowsToolCallException(): void
+    {
+        $this->apiKeyProvider
+            ->expects($this->once())
+            ->method('getApiKey')
+            ->willThrowException(new ValidationException('Planka API key required.'));
+
+        $this->notificationService->expects($this->never())->method('readAllNotifications');
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Planka API key required.');
+
+        $this->tools->markAllNotificationsRead();
+    }
+
+    public function testMarkAllNotificationsReadWrapsAuthExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('bad-key');
+
+        $this->notificationService
+            ->method('readAllNotifications')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        $this->tools->markAllNotificationsRead();
+    }
+
+    public function testMarkAllNotificationsReadWrapsPlankaApiExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->notificationService
+            ->method('readAllNotifications')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('Server error');
+
+        $this->tools->markAllNotificationsRead();
+    }
 }

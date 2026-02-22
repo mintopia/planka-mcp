@@ -23,4 +23,10 @@ final class NotificationService
     {
         return $this->plankaClient->patch($apiKey, '/api/notifications/' . $notificationId, ['isRead' => $isRead]);
     }
+
+    /** @return array<mixed> */
+    public function readAllNotifications(string $apiKey): array
+    {
+        return $this->plankaClient->post($apiKey, '/api/notifications/read-all', []);
+    }
 }

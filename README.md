@@ -33,7 +33,7 @@ Built with Symfony 7 and FrankenPHP, running in worker mode inside Docker. Multi
 
 | Tool | Description |
 |---|---|
-| `planka_manage_lists` | Create, get, update, or delete a list on a board |
+| `planka_manage_lists` | Create, get, update, delete, or manage cards in a list on a board |
 | `planka_sort_list` | Sort cards within a list by a specified field |
 
 ### Cards
@@ -94,6 +94,33 @@ Built with Symfony 7 and FrankenPHP, running in worker mode inside Docker. Multi
 |---|---|
 | `planka_get_notifications` | List all notifications for the authenticated user |
 | `planka_mark_notification_read` | Mark a notification as read or unread |
+| `planka_mark_all_notifications_read` | Mark all notifications as read |
+
+### Custom Fields
+
+| Tool | Description |
+|---|---|
+| `planka_manage_custom_field_groups` | Create, get, update, or delete custom field groups on projects (base groups), boards, or cards |
+| `planka_manage_custom_fields` | Create, update, or delete custom fields within a custom field group |
+| `planka_manage_custom_field_values` | Set or delete a custom field value on a card |
+
+### Webhooks
+
+| Tool | Description |
+|---|---|
+| `planka_manage_webhooks` | List, create, update, or delete webhooks |
+
+### Activity
+
+| Tool | Description |
+|---|---|
+| `planka_get_actions` | Get the activity log (actions) for a board or card |
+
+### Notification Services
+
+| Tool | Description |
+|---|---|
+| `planka_manage_notification_services` | Create, update, test, or delete notification services (integrations) for users or boards |
 
 ## Requirements
 
@@ -278,7 +305,7 @@ The project enforces **100% code coverage**. The CI pipeline will fail if covera
 
 ### Integration tests
 
-`test_integration.sh` exercises all 32 MCP tools against a real running Planka instance via the MCP Streamable HTTP protocol. It creates real resources (project, board, lists, cards, labels, tasks, comments, attachments, users, etc.), tests each tool, and cleans everything up at the end.
+`test_integration.sh` exercises all 39 MCP tools against a real running Planka instance via the MCP Streamable HTTP protocol. It creates real resources (project, board, lists, cards, labels, tasks, comments, webhooks, custom fields, etc.), tests each tool, and cleans everything up at the end.
 
 #### Requirements
 

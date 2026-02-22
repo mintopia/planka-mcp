@@ -206,11 +206,127 @@ final class ListServiceTest extends TestCase
     public function testManageListInvalidActionThrowsValidationException(): void
     {
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('Invalid action "reorder". Must be: create, update, delete, get');
+        $this->expectExceptionMessage('Invalid action "reorder". Must be: create, update, delete, get, get_cards, move_cards, clear');
 
         $this->service->manageList(
             apiKey: 'test-api-key',
             action: 'reorder',
+        );
+    }
+
+    // --- manageList: get_cards ---
+
+    public function testManageListGetCardsSuccess(): void
+    {
+        $expected = ['items' => [['id' => 'card1'], ['id' => 'card2']]];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('get')
+            ->with('test-api-key', '/api/lists/list1/cards')
+            ->willReturn($expected);
+
+        $result = $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'get_cards',
+            listId: 'list1',
+        );
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testManageListGetCardsWithoutListIdThrowsValidationException(): void
+    {
+        $this->plankaClient->expects($this->never())->method('get');
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('listId required for get_cards');
+
+        $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'get_cards',
+        );
+    }
+
+    // --- manageList: move_cards ---
+
+    public function testManageListMoveCardsSuccess(): void
+    {
+        $expected = ['items' => []];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with('test-api-key', '/api/lists/list1/move-cards', ['listId' => 'list2'])
+            ->willReturn($expected);
+
+        $result = $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'move_cards',
+            listId: 'list1',
+            toListId: 'list2',
+        );
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testManageListMoveCardsWithoutListIdThrowsValidationException(): void
+    {
+        $this->plankaClient->expects($this->never())->method('post');
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('listId required for move_cards');
+
+        $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'move_cards',
+            toListId: 'list2',
+        );
+    }
+
+    public function testManageListMoveCardsWithoutToListIdThrowsValidationException(): void
+    {
+        $this->plankaClient->expects($this->never())->method('post');
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('toListId required for move_cards');
+
+        $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'move_cards',
+            listId: 'list1',
+        );
+    }
+
+    // --- manageList: clear ---
+
+    public function testManageListClearSuccess(): void
+    {
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with('test-api-key', '/api/lists/list1/clear', [])
+            ->willReturn([]);
+
+        $result = $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'clear',
+            listId: 'list1',
+        );
+
+        $this->assertSame([], $result);
+    }
+
+    public function testManageListClearWithoutListIdThrowsValidationException(): void
+    {
+        $this->plankaClient->expects($this->never())->method('post');
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('listId required for clear');
+
+        $this->service->manageList(
+            apiKey: 'test-api-key',
+            action: 'clear',
         );
     }
 
@@ -367,5 +483,120 @@ final class ListServiceTest extends TestCase
         $this->expectException(PlankaApiException::class);
 
         $this->service->sortList('test-api-key', 'list1', 'name');
+    }
+
+    // --- getListCards ---
+
+    public function testGetListCardsSuccess(): void
+    {
+        $expected = ['items' => [['id' => 'card1'], ['id' => 'card2']]];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('get')
+            ->with('test-api-key', '/api/lists/list1/cards')
+            ->willReturn($expected);
+
+        $result = $this->service->getListCards('test-api-key', 'list1');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetListCardsPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('get')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->getListCards('bad-key', 'list1');
+    }
+
+    public function testGetListCardsPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('get')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->getListCards('test-api-key', 'list1');
+    }
+
+    // --- moveListCards ---
+
+    public function testMoveListCardsSuccess(): void
+    {
+        $expected = ['items' => []];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with('test-api-key', '/api/lists/list1/move-cards', ['listId' => 'list2'])
+            ->willReturn($expected);
+
+        $result = $this->service->moveListCards('test-api-key', 'list1', 'list2');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testMoveListCardsPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->moveListCards('bad-key', 'list1', 'list2');
+    }
+
+    public function testMoveListCardsPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->moveListCards('test-api-key', 'list1', 'list2');
+    }
+
+    // --- clearList ---
+
+    public function testClearListSuccess(): void
+    {
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with('test-api-key', '/api/lists/list1/clear', [])
+            ->willReturn([]);
+
+        $result = $this->service->clearList('test-api-key', 'list1');
+
+        $this->assertSame([], $result);
+    }
+
+    public function testClearListPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->clearList('bad-key', 'list1');
+    }
+
+    public function testClearListPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->clearList('test-api-key', 'list1');
     }
 }

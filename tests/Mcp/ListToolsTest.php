@@ -184,6 +184,75 @@ final class ListToolsTest extends TestCase
         $this->tools->manageLists('update', null, 'list1', 'Done');
     }
 
+    // --- manageLists: get_cards ---
+
+    public function testManageListsGetCardsSuccess(): void
+    {
+        $expected = ['items' => [['id' => 'card1'], ['id' => 'card2']]];
+
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->listService
+            ->expects($this->once())
+            ->method('manageList')
+            ->with('test-api-key', 'get_cards', null, 'list1', null, null, null)
+            ->willReturn($expected);
+
+        $result = $this->tools->manageLists('get_cards', listId: 'list1');
+
+        $this->assertSame($expected, $result);
+    }
+
+    // --- manageLists: move_cards ---
+
+    public function testManageListsMoveCardsSuccess(): void
+    {
+        $expected = ['items' => []];
+
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->listService
+            ->expects($this->once())
+            ->method('manageList')
+            ->with('test-api-key', 'move_cards', null, 'list1', null, null, 'list2')
+            ->willReturn($expected);
+
+        $result = $this->tools->manageLists('move_cards', listId: 'list1', toListId: 'list2');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testManageListsMoveCardsMissingToListIdWrapsValidationExceptionInToolCallException(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->listService
+            ->method('manageList')
+            ->willThrowException(new ValidationException('toListId required for move_cards'));
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessage('toListId required for move_cards');
+
+        $this->tools->manageLists('move_cards', listId: 'list1');
+    }
+
+    // --- manageLists: clear ---
+
+    public function testManageListsClearSuccess(): void
+    {
+        $this->apiKeyProvider->method('getApiKey')->willReturn('test-api-key');
+
+        $this->listService
+            ->expects($this->once())
+            ->method('manageList')
+            ->with('test-api-key', 'clear', null, 'list1', null, null, null)
+            ->willReturn([]);
+
+        $result = $this->tools->manageLists('clear', listId: 'list1');
+
+        $this->assertSame([], $result);
+    }
+
     // --- manageLists: get ---
 
     public function testManageListsGetSuccess(): void

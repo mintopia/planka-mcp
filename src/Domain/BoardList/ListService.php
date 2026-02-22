@@ -21,13 +21,17 @@ final class ListService
         ?string $listId = null,
         ?string $name = null,
         ?int $position = null,
+        ?string $toListId = null,
     ): array {
         return match ($action) {
             'create' => $this->createList($apiKey, $boardId ?? throw new ValidationException('boardId required for create'), $name, $position),
             'update' => $this->updateList($apiKey, $listId ?? throw new ValidationException('listId required for update'), $name, $position),
             'delete' => $this->deleteList($apiKey, $listId ?? throw new ValidationException('listId required for delete')),
             'get' => $this->getList($apiKey, $listId ?? throw new ValidationException('listId required for get')),
-            default => throw new ValidationException(sprintf('Invalid action "%s". Must be: create, update, delete, get', $action)),
+            'get_cards' => $this->getListCards($apiKey, $listId ?? throw new ValidationException('listId required for get_cards')),
+            'move_cards' => $this->moveListCards($apiKey, $listId ?? throw new ValidationException('listId required for move_cards'), $toListId ?? throw new ValidationException('toListId required for move_cards')),
+            'clear' => $this->clearList($apiKey, $listId ?? throw new ValidationException('listId required for clear')),
+            default => throw new ValidationException(sprintf('Invalid action "%s". Must be: create, update, delete, get, get_cards, move_cards, clear', $action)),
         };
     }
 
@@ -70,5 +74,23 @@ final class ListService
     private function deleteList(string $apiKey, string $listId): array
     {
         return $this->plankaClient->delete($apiKey, '/api/lists/' . $listId);
+    }
+
+    /** @return array<mixed> */
+    public function getListCards(string $apiKey, string $listId): array
+    {
+        return $this->plankaClient->get($apiKey, '/api/lists/' . $listId . '/cards');
+    }
+
+    /** @return array<mixed> */
+    public function moveListCards(string $apiKey, string $listId, string $toListId): array
+    {
+        return $this->plankaClient->post($apiKey, '/api/lists/' . $listId . '/move-cards', ['listId' => $toListId]);
+    }
+
+    /** @return array<mixed> */
+    public function clearList(string $apiKey, string $listId): array
+    {
+        return $this->plankaClient->post($apiKey, '/api/lists/' . $listId . '/clear', []);
     }
 }

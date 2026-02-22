@@ -127,4 +127,43 @@ final class NotificationServiceTest extends TestCase
 
         $this->service->updateNotification('test-api-key', 'notif1', true);
     }
+
+    // --- readAllNotifications ---
+
+    public function testReadAllNotificationsSuccess(): void
+    {
+        $expected = ['success' => true];
+
+        $this->plankaClient
+            ->expects($this->once())
+            ->method('post')
+            ->with('test-api-key', '/api/notifications/read-all', [])
+            ->willReturn($expected);
+
+        $result = $this->service->readAllNotifications('test-api-key');
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testReadAllNotificationsPropagatesAuthException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new AuthenticationException('Unauthorized'));
+
+        $this->expectException(AuthenticationException::class);
+
+        $this->service->readAllNotifications('bad-key');
+    }
+
+    public function testReadAllNotificationsPropagatesApiException(): void
+    {
+        $this->plankaClient
+            ->method('post')
+            ->willThrowException(new PlankaApiException('Server error'));
+
+        $this->expectException(PlankaApiException::class);
+
+        $this->service->readAllNotifications('test-api-key');
+    }
 }

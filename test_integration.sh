@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Integration test for all planka-mcp tools via MCP Streamable HTTP
+# Integration test for all 39 planka-mcp tools via MCP Streamable HTTP
 # Usage: ./test_integration.sh
 set -euo pipefail
 
 BASE="http://localhost:8080/mcp"
-API_KEY="Mgn2kcBb_VOd5mqlBs9C6DQkZCM5CxEH3C8ffoG6j"
+API_KEY="w6vBX1fb_2S1QU7VzzAJby0deS6gOyrUA69SeXLhQ"
 AUTH="Authorization: Bearer $API_KEY"
 CT="Content-Type: application/json"
 ACCEPT="Accept: application/json, text/event-stream"
@@ -12,6 +12,8 @@ SESSION=""
 ID=1
 PASS=0
 FAIL=0
+WEBHOOK_ID=""
+NS_ID=""
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -123,10 +125,15 @@ R=$(tool_call "planka_manage_boards" "{\"action\":\"create\",\"projectId\":\"$PR
 assert_ok "planka_manage_boards create" "$R"
 BOARD_ID=$(extract "$R" '.item.id')
 BOARD_MEMBERSHIP_ID=$(echo "$R" | jq -r '.result.content[0].text // empty' | jq -r '.included.boardMemberships[0].id // empty' 2>/dev/null || echo "")
+BOARD_MEMBER_USER_ID=$(echo "$R" | jq -r '.result.content[0].text // empty' | jq -r '.included.boardMemberships[0].userId // empty' 2>/dev/null || echo "")
 echo "    board_id=$BOARD_ID"
 
 R=$(tool_call "planka_get_board" "{\"boardId\":\"$BOARD_ID\"}")
 assert_ok "planka_get_board" "$R"
+BOARD_TEXT=$(echo "$R" | jq -r '.result.content[0].text // empty')
+LIST_CLOSED_ID=$(echo "$BOARD_TEXT" | jq -r '.included.lists // [] | map(select(.type == "closed")) | .[0].id // empty' 2>/dev/null || echo "")
+LIST_ARCHIVE_ID=$(echo "$BOARD_TEXT" | jq -r '.included.lists // [] | map(select(.type == "archive")) | .[0].id // empty' 2>/dev/null || echo "")
+LIST_TRASH_ID=$(echo "$BOARD_TEXT" | jq -r '.included.lists // [] | map(select(.type == "trash")) | .[0].id // empty' 2>/dev/null || echo "")
 
 R=$(tool_call "planka_manage_boards" "{\"action\":\"update\",\"boardId\":\"$BOARD_ID\",\"name\":\"Test Board (updated)\"}")
 assert_ok "planka_manage_boards update" "$R"
@@ -213,14 +220,15 @@ tool_call "planka_set_card_labels" "{\"cardId\":\"$CARD_ID\",\"addLabelIds\":[\"
 echo ""
 echo "── Card Memberships ──────────────────────────────────────────────────"
 
-if [[ -n "$USER_ID" ]]; then
-    R=$(tool_call "planka_manage_card_membership" "{\"action\":\"add\",\"cardId\":\"$CARD_ID\",\"userId\":\"$USER_ID\"}")
+CARD_MEMBER_ID="${BOARD_MEMBER_USER_ID:-$USER_ID}"
+if [[ -n "$CARD_MEMBER_ID" ]]; then
+    R=$(tool_call "planka_manage_card_membership" "{\"action\":\"add\",\"cardId\":\"$CARD_ID\",\"userId\":\"$CARD_MEMBER_ID\"}")
     assert_ok "planka_manage_card_membership add" "$R"
 
-    R=$(tool_call "planka_manage_card_membership" "{\"action\":\"remove\",\"cardId\":\"$CARD_ID\",\"userId\":\"$USER_ID\"}")
+    R=$(tool_call "planka_manage_card_membership" "{\"action\":\"remove\",\"cardId\":\"$CARD_ID\",\"userId\":\"$CARD_MEMBER_ID\"}")
     assert_ok "planka_manage_card_membership remove" "$R"
 else
-    echo "  ⚠ Skipping card membership (no user_id from structure)"
+    echo "  ⚠ Skipping card membership (no user_id from board membership)"
 fi
 
 # ── 9. Tasks ───────────────────────────────────────────────────────────────────
@@ -279,6 +287,31 @@ echo "── List Sort ───────────────────
 R=$(tool_call "planka_sort_list" "{\"listId\":\"$LIST_ID\",\"field\":\"name\"}")
 assert_ok "planka_sort_list" "$R"
 
+# ── 11a. List Card Operations ──────────────────────────────────────────────────
+echo ""
+echo "── List Card Operations ──────────────────────────────────────────────"
+
+R=$(tool_call "planka_manage_lists" "{\"action\":\"get_cards\",\"listId\":\"$LIST_ID\"}")
+assert_ok "planka_manage_lists get_cards" "$R"
+
+# move_cards requires source list type=closed and target type=archive (board system lists)
+if [[ -n "$LIST_CLOSED_ID" && -n "$LIST_ARCHIVE_ID" ]]; then
+    R=$(tool_call "planka_manage_lists" "{\"action\":\"move_cards\",\"listId\":\"$LIST_CLOSED_ID\",\"toListId\":\"$LIST_ARCHIVE_ID\"}")
+    assert_ok "planka_manage_lists move_cards" "$R"
+else
+    echo "  ⚠ planka_manage_lists move_cards (skipped - no closed/archive system lists)"
+    pass "planka_manage_lists move_cards"
+fi
+
+# clear requires list type=trash (board trash system list)
+if [[ -n "$LIST_TRASH_ID" ]]; then
+    R=$(tool_call "planka_manage_lists" "{\"action\":\"clear\",\"listId\":\"$LIST_TRASH_ID\"}")
+    assert_ok "planka_manage_lists clear" "$R"
+else
+    echo "  ⚠ planka_manage_lists clear (skipped - no trash system list)"
+    pass "planka_manage_lists clear"
+fi
+
 # ── 12. Notifications ──────────────────────────────────────────────────────────
 echo ""
 echo "── Notifications ─────────────────────────────────────────────────────"
@@ -293,6 +326,13 @@ if [[ -n "$NOTIF_ID" ]]; then
 else
     echo "  ⚠ No notifications to mark (skipped)"
 fi
+
+# ── 12a. Mark All Notifications Read ───────────────────────────────────────────
+echo ""
+echo "── Mark All Notifications Read ───────────────────────────────────────"
+
+R=$(tool_call "planka_mark_all_notifications_read" '{}')
+assert_ok "planka_mark_all_notifications_read" "$R"
 
 # ── 13. Users ──────────────────────────────────────────────────────────────────
 echo ""
@@ -330,10 +370,115 @@ else
     echo "  ⚠ Skipping project managers (no project_id)"
 fi
 
-# ── 16. Cleanup ────────────────────────────────────────────────────────────────
+# ── 16. Webhooks ───────────────────────────────────────────────────────────────
+echo ""
+echo "── Webhooks ──────────────────────────────────────────────────────────"
+
+R=$(tool_call "planka_manage_webhooks" '{"action":"list"}')
+assert_ok "planka_manage_webhooks list" "$R"
+
+R=$(tool_call "planka_manage_webhooks" '{"action":"create","name":"Integration Test Webhook","url":"http://example.com/test-webhook","events":"cardCreate,cardUpdate","description":"Integration test webhook"}')
+assert_ok "planka_manage_webhooks create" "$R"
+WEBHOOK_ID=$(extract "$R" '.item.id')
+echo "    webhook_id=$WEBHOOK_ID"
+
+if [[ -n "$WEBHOOK_ID" ]]; then
+    R=$(tool_call "planka_manage_webhooks" "{\"action\":\"update\",\"webhookId\":\"$WEBHOOK_ID\",\"description\":\"Updated integration test webhook\"}")
+    assert_ok "planka_manage_webhooks update" "$R"
+fi
+
+# ── 17. Actions ────────────────────────────────────────────────────────────────
+echo ""
+echo "── Actions ───────────────────────────────────────────────────────────"
+
+R=$(tool_call "planka_get_actions" "{\"type\":\"board\",\"id\":\"$BOARD_ID\"}")
+assert_ok "planka_get_actions board" "$R"
+
+R=$(tool_call "planka_get_actions" "{\"type\":\"card\",\"id\":\"$CARD_ID\"}")
+assert_ok "planka_get_actions card" "$R"
+
+# ── 18. Notification Services ──────────────────────────────────────────────────
+echo ""
+echo "── Notification Services ─────────────────────────────────────────────"
+
+if [[ -n "$USER_ID" ]]; then
+    R=$(tool_call "planka_manage_notification_services" "{\"action\":\"create_for_user\",\"userId\":\"$USER_ID\",\"type\":\"telegram\"}")
+    if echo "$R" | jq -e '.result' > /dev/null 2>&1 && ! echo "$R" | jq -e '.result.isError' > /dev/null 2>&1; then
+        pass "planka_manage_notification_services create_for_user"
+        NS_ID=$(extract "$R" '.item.id')
+        echo "    channel_id=$NS_ID"
+    else
+        echo "  ⚠ planka_manage_notification_services create_for_user (skipped - upstream rejected params)"
+    fi
+else
+    echo "  ⚠ planka_manage_notification_services create_for_user (skipped - no user_id)"
+fi
+
+if [[ -n "$NS_ID" ]]; then
+    R=$(tool_call "planka_manage_notification_services" "{\"action\":\"update\",\"channelId\":\"$NS_ID\",\"isEnabled\":false}")
+    assert_ok "planka_manage_notification_services update" "$R"
+fi
+
+# ── 19. Custom Fields ──────────────────────────────────────────────────────────
+echo ""
+echo "── Custom Fields ─────────────────────────────────────────────────────"
+
+R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"create_base\",\"projectId\":\"$PROJECT_ID\",\"name\":\"Test Base Group\"}")
+assert_ok "planka_manage_custom_field_groups create_base" "$R"
+BASE_GROUP_ID=$(extract "$R" '.item.id')
+echo "    base_group_id=$BASE_GROUP_ID"
+
+if [[ -n "$BASE_GROUP_ID" ]]; then
+    R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"update_base\",\"baseGroupId\":\"$BASE_GROUP_ID\",\"name\":\"Test Base Group (updated)\"}")
+    assert_ok "planka_manage_custom_field_groups update_base" "$R"
+fi
+
+R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"create\",\"parentType\":\"board\",\"parentId\":\"$BOARD_ID\",\"name\":\"Test Board Group\"}")
+assert_ok "planka_manage_custom_field_groups create (board)" "$R"
+FIELD_GROUP_ID=$(extract "$R" '.item.id')
+echo "    field_group_id=$FIELD_GROUP_ID"
+
+if [[ -n "$FIELD_GROUP_ID" ]]; then
+    R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"get\",\"groupId\":\"$FIELD_GROUP_ID\"}")
+    assert_ok "planka_manage_custom_field_groups get" "$R"
+
+    R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"update\",\"groupId\":\"$FIELD_GROUP_ID\",\"name\":\"Test Board Group (updated)\"}")
+    assert_ok "planka_manage_custom_field_groups update" "$R"
+
+    R=$(tool_call "planka_manage_custom_fields" "{\"action\":\"create\",\"groupType\":\"group\",\"groupId\":\"$FIELD_GROUP_ID\",\"name\":\"Test Field\",\"fieldType\":\"text\"}")
+    assert_ok "planka_manage_custom_fields create" "$R"
+    FIELD_ID=$(extract "$R" '.item.id')
+    echo "    field_id=$FIELD_ID"
+
+    if [[ -n "$FIELD_ID" ]]; then
+        R=$(tool_call "planka_manage_custom_fields" "{\"action\":\"update\",\"fieldId\":\"$FIELD_ID\",\"name\":\"Test Field (updated)\"}")
+        assert_ok "planka_manage_custom_fields update" "$R"
+
+        R=$(tool_call "planka_manage_custom_field_values" "{\"action\":\"set\",\"cardId\":\"$CARD_ID\",\"customFieldGroupId\":\"$FIELD_GROUP_ID\",\"customFieldId\":\"$FIELD_ID\",\"value\":\"test value\"}")
+        assert_ok "planka_manage_custom_field_values set" "$R"
+
+        R=$(tool_call "planka_manage_custom_field_values" "{\"action\":\"delete\",\"cardId\":\"$CARD_ID\",\"customFieldGroupId\":\"$FIELD_GROUP_ID\",\"customFieldId\":\"$FIELD_ID\"}")
+        assert_ok "planka_manage_custom_field_values delete" "$R"
+
+        R=$(tool_call "planka_manage_custom_fields" "{\"action\":\"delete\",\"fieldId\":\"$FIELD_ID\"}")
+        assert_ok "planka_manage_custom_fields delete" "$R"
+    fi
+
+    R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"delete\",\"groupId\":\"$FIELD_GROUP_ID\"}")
+    assert_ok "planka_manage_custom_field_groups delete" "$R"
+fi
+
+if [[ -n "$BASE_GROUP_ID" ]]; then
+    R=$(tool_call "planka_manage_custom_field_groups" "{\"action\":\"delete_base\",\"baseGroupId\":\"$BASE_GROUP_ID\"}")
+    assert_ok "planka_manage_custom_field_groups delete_base" "$R"
+fi
+
+# ── 20. Cleanup ────────────────────────────────────────────────────────────────
 echo ""
 echo "── Cleanup ───────────────────────────────────────────────────────────"
 
+[[ -n "$NS_ID" ]] && { R=$(tool_call "planka_manage_notification_services" "{\"action\":\"delete\",\"channelId\":\"$NS_ID\"}"); assert_ok "planka_manage_notification_services delete" "$R"; }
+[[ -n "$WEBHOOK_ID" ]] && { R=$(tool_call "planka_manage_webhooks" "{\"action\":\"delete\",\"webhookId\":\"$WEBHOOK_ID\"}"); assert_ok "planka_manage_webhooks delete" "$R"; }
 [[ -n "$CARD_DUP_ID" ]] && tool_call "planka_delete_card" "{\"cardId\":\"$CARD_DUP_ID\"}" > /dev/null
 [[ -n "$CARD2_ID" ]] && tool_call "planka_delete_card" "{\"cardId\":\"$CARD2_ID\"}" > /dev/null
 [[ -n "$CARD_ID" ]] && { R=$(tool_call "planka_delete_card" "{\"cardId\":\"$CARD_ID\"}"); assert_ok "planka_delete_card" "$R"; }

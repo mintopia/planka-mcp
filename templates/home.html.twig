@@ -21,7 +21,7 @@
 <div class="wrap">
 
   <section>
-    <h2>Available Tools (32)</h2>
+    <h2>Available Tools (39)</h2>
 
     <div class="tools">
       <div class="tool" role="button" tabindex="0" data-params='[]'>
@@ -66,11 +66,11 @@
           <div class="tool-desc">Add, update, or remove board memberships</div>
         </div>
       </div>
-      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, update, delete, or get","enum":["create","update","delete","get"]},{"name":"boardId","type":"string","required":false,"desc":"Board ID (required for create)"},{"name":"listId","type":"string","required":false,"desc":"List ID (required for update/delete/get)"},{"name":"name","type":"string","required":false,"desc":"List name"},{"name":"position","type":"integer","required":false,"desc":"List position"}]'>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, update, delete, get, get_cards, move_cards, or clear","enum":["create","update","delete","get","get_cards","move_cards","clear"]},{"name":"boardId","type":"string","required":false,"desc":"Board ID (required for create)"},{"name":"listId","type":"string","required":false,"desc":"List ID (required for update/delete/get/get_cards/move_cards/clear)"},{"name":"name","type":"string","required":false,"desc":"List name"},{"name":"position","type":"integer","required":false,"desc":"List position"},{"name":"toListId","type":"string","required":false,"desc":"Target list ID for the move_cards action"}]'>
         <div class="tool-icon">&#128262;</div>
         <div>
           <div class="tool-name">planka_manage_lists</div>
-          <div class="tool-desc">Create, update, delete, or get a list on a board</div>
+          <div class="tool-desc">Create, update, delete, get, or manage cards in a list on a board</div>
         </div>
       </div>
       <div class="tool" role="button" tabindex="0" data-params='[{"name":"listId","type":"string","required":true,"desc":"List ID (from planka_get_board)"},{"name":"field","type":"string","required":true,"desc":"Field to sort by","enum":["name","dueDate","createdAt"]}]'>
@@ -246,6 +246,55 @@
         <div>
           <div class="tool-name">planka_mark_notification_read</div>
           <div class="tool-desc">Mark a notification as read or unread</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[]'>
+        <div class="tool-icon">&#128276;</div>
+        <div>
+          <div class="tool-name">planka_mark_all_notifications_read</div>
+          <div class="tool-desc">Mark all notifications as read</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform","enum":["create_base","update_base","delete_base","create","get","update","delete"]},{"name":"projectId","type":"string","required":false,"desc":"Project ID - required for create_base"},{"name":"baseGroupId","type":"string","required":false,"desc":"Base custom field group ID - required for update_base and delete_base"},{"name":"parentType","type":"string","required":false,"desc":"Required for create: whether the group belongs to a board or card","enum":["board","card"]},{"name":"parentId","type":"string","required":false,"desc":"Board ID or card ID - required for create"},{"name":"groupId","type":"string","required":false,"desc":"Custom field group ID - required for get, update, delete"},{"name":"name","type":"string","required":false,"desc":"Group name"}]'>
+        <div class="tool-icon">&#128218;</div>
+        <div>
+          <div class="tool-name">planka_manage_custom_field_groups</div>
+          <div class="tool-desc">Create, get, update, or delete custom field groups on projects, boards, or cards</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, update, or delete","enum":["create","update","delete"]},{"name":"groupType","type":"string","required":false,"desc":"Required for create: whether the parent is a base or regular custom field group","enum":["base","group"]},{"name":"groupId","type":"string","required":false,"desc":"Group ID - required for create"},{"name":"fieldId","type":"string","required":false,"desc":"Custom field ID - required for update and delete"},{"name":"name","type":"string","required":false,"desc":"Field name"},{"name":"fieldType","type":"string","required":false,"desc":"Field type"}]'>
+        <div class="tool-icon">&#128295;</div>
+        <div>
+          <div class="tool-name">planka_manage_custom_fields</div>
+          <div class="tool-desc">Create, update, or delete custom fields within a custom field group</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: set or delete","enum":["set","delete"]},{"name":"cardId","type":"string","required":true,"desc":"The card ID"},{"name":"customFieldGroupId","type":"string","required":true,"desc":"The custom field group ID"},{"name":"customFieldId","type":"string","required":true,"desc":"The custom field ID"},{"name":"value","type":"string","required":false,"desc":"The value to set - required for action set"}]'>
+        <div class="tool-icon">&#128190;</div>
+        <div>
+          <div class="tool-name">planka_manage_custom_field_values</div>
+          <div class="tool-desc">Set or delete a custom field value on a card</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: list, create, update, or delete","enum":["list","create","update","delete"]},{"name":"webhookId","type":"string","required":false,"desc":"Webhook ID - required for update and delete"},{"name":"url","type":"string","required":false,"desc":"Webhook callback URL - required for create"},{"name":"events","type":"array","required":false,"desc":"Event types to subscribe to - required for create"},{"name":"description","type":"string","required":false,"desc":"Webhook description"}]'>
+        <div class="tool-icon">&#128279;</div>
+        <div>
+          <div class="tool-name">planka_manage_webhooks</div>
+          <div class="tool-desc">List, create, update, or delete webhooks</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"type","type":"string","required":true,"desc":"Whether to get actions for a board or a card","enum":["board","card"]},{"name":"id","type":"string","required":true,"desc":"The board ID or card ID"}]'>
+        <div class="tool-icon">&#128240;</div>
+        <div>
+          <div class="tool-name">planka_get_actions</div>
+          <div class="tool-desc">Get the activity log (actions) for a board or card</div>
+        </div>
+      </div>
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform","enum":["create_for_user","create_for_board","update","test","delete"]},{"name":"userId","type":"string","required":false,"desc":"User ID - required for create_for_user"},{"name":"boardId","type":"string","required":false,"desc":"Board ID - required for create_for_board"},{"name":"channelId","type":"string","required":false,"desc":"Notification service ID - required for update, test, delete"},{"name":"type","type":"string","required":false,"desc":"Service type (e.g. slack, telegram, email)"},{"name":"isEnabled","type":"boolean","required":false,"desc":"Enable or disable the notification service"},{"name":"params","type":"object","required":false,"desc":"Service-specific configuration parameters"}]'>
+        <div class="tool-icon">&#128268;</div>
+        <div>
+          <div class="tool-name">planka_manage_notification_services</div>
+          <div class="tool-desc">Create, update, test, or delete notification services for users or boards</div>
         </div>
       </div>
     </div>

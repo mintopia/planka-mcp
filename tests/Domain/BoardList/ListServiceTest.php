@@ -32,7 +32,7 @@ final class ListServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/boards/board1/lists', ['name' => 'To Do', 'position' => 1])
+            ->with('test-api-key', '/api/boards/board1/lists', ['type' => 'active', 'position' => 1, 'name' => 'To Do'])
             ->willReturn($expected);
 
         $result = $this->service->manageList(
@@ -53,7 +53,7 @@ final class ListServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/boards/board1/lists', [])
+            ->with('test-api-key', '/api/boards/board1/lists', ['type' => 'active', 'position' => 65536])
             ->willReturn($expected);
 
         $result = $this->service->manageList(
@@ -339,7 +339,7 @@ final class ListServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/lists/list1/sort', ['field' => 'name'])
+            ->with('test-api-key', '/api/lists/list1/sort', ['fieldName' => 'name'])
             ->willReturn($expected);
 
         $result = $this->service->sortList('test-api-key', 'list1', 'name');

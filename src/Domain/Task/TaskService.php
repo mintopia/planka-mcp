@@ -25,19 +25,21 @@ final class TaskService
         $taskList = $this->plankaClient->post(
             $apiKey,
             '/api/cards/' . $cardId . '/task-lists',
-            ['name' => 'Tasks'],
+            ['name' => 'Tasks', 'position' => 65536],
         );
 
         $taskListId = $taskList['item']['id'];
 
         // Step 2: Create each task in the task list
         $createdTasks = [];
+        $position = 65536;
         foreach ($tasks as $taskName) {
             $createdTasks[] = $this->plankaClient->post(
                 $apiKey,
                 '/api/task-lists/' . $taskListId . '/tasks',
-                ['name' => $taskName],
+                ['name' => $taskName, 'position' => $position],
             );
+            $position += 65536;
         }
 
         return [

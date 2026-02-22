@@ -33,7 +33,7 @@ final class LabelService
     /** @return array<mixed> */
     private function createLabel(string $apiKey, string $boardId, ?string $name, ?string $color): array
     {
-        $body = [];
+        $body = ['position' => 65536];
         if ($name !== null) {
             $body['name'] = $name;
         }

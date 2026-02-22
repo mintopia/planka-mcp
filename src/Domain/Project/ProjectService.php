@@ -19,9 +19,9 @@ final class ProjectService
     }
 
     /** @return array<mixed> */
-    public function createProject(string $apiKey, string $name): array
+    public function createProject(string $apiKey, string $name, string $type = 'shared'): array
     {
-        return $this->plankaClient->post($apiKey, '/api/projects', ['name' => $name]);
+        return $this->plankaClient->post($apiKey, '/api/projects', ['name' => $name, 'type' => $type]);
     }
 
     /** @return array<mixed> */
@@ -57,8 +57,8 @@ final class ProjectService
     }
 
     /** @return array<mixed> */
-    public function removeProjectManager(string $apiKey, string $projectId, string $userId): array
+    public function removeProjectManager(string $apiKey, string $projectManagerId): array
     {
-        return $this->plankaClient->delete($apiKey, '/api/projects/' . $projectId . '/project-managers/userId:' . $userId);
+        return $this->plankaClient->delete($apiKey, '/api/project-managers/' . $projectManagerId);
     }
 }

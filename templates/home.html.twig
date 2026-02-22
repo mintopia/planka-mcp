@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planka MCP Server</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
@@ -22,266 +23,225 @@
   <section>
     <h2>Available Tools (32)</h2>
 
-    <h3>Structure</h3>
     <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[]'>
         <div class="tool-icon">&#128202;</div>
         <div>
           <div class="tool-name">planka_get_structure</div>
           <div class="tool-desc">Get all Planka projects with their boards and lists</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"boardId","type":"string","required":true,"desc":"The board ID (from planka_get_structure or planka_get_board)"}]'>
         <div class="tool-icon">&#128243;</div>
         <div>
           <div class="tool-name">planka_get_board</div>
           <div class="tool-desc">Get a board with all its lists, cards, and labels</div>
         </div>
       </div>
-    </div>
-
-    <h3>Projects</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, get, update, or delete","enum":["create","get","update","delete"]},{"name":"projectId","type":"string","required":false,"desc":"Project ID (required for get, update, delete)"},{"name":"name","type":"string","required":false,"desc":"Project name (required for create, optional for update)"},{"name":"description","type":"string","required":false,"desc":"Project description (optional for update)"}]'>
         <div class="tool-icon">&#128193;</div>
         <div>
           <div class="tool-name">planka_manage_projects</div>
           <div class="tool-desc">Create, get, update, or delete a Planka project</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: add or remove","enum":["add","remove"]},{"name":"projectId","type":"string","required":true,"desc":"Project ID"},{"name":"userId","type":"string","required":false,"desc":"User ID to add as project manager (required for add)"},{"name":"projectManagerId","type":"string","required":false,"desc":"Project manager record ID (required for remove)"}]'>
         <div class="tool-icon">&#128100;</div>
         <div>
           <div class="tool-name">planka_manage_project_managers</div>
           <div class="tool-desc">Add or remove a project manager from a project</div>
         </div>
       </div>
-    </div>
-
-    <h3>Boards</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, get, update, or delete","enum":["create","get","update","delete"]},{"name":"boardId","type":"string","required":false,"desc":"Board ID (required for get, update, delete)"},{"name":"projectId","type":"string","required":false,"desc":"Project ID (required for create)"},{"name":"name","type":"string","required":false,"desc":"Board name (required for create, optional for update)"},{"name":"position","type":"integer","required":false,"desc":"Board position"}]'>
         <div class="tool-icon">&#128203;</div>
         <div>
           <div class="tool-name">planka_manage_boards</div>
           <div class="tool-desc">Create, get, update, or delete a board within a project</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: add, update, or remove","enum":["add","update","remove"]},{"name":"boardId","type":"string","required":false,"desc":"Board ID (required for add)"},{"name":"membershipId","type":"string","required":false,"desc":"Membership ID (required for update and remove)"},{"name":"userId","type":"string","required":false,"desc":"User ID (required for add)"},{"name":"role","type":"string","required":false,"desc":"Member role","enum":["editor","viewer"]}]'>
         <div class="tool-icon">&#128101;</div>
         <div>
           <div class="tool-name">planka_manage_board_memberships</div>
           <div class="tool-desc">Add, update, or remove board memberships</div>
         </div>
       </div>
-    </div>
-
-    <h3>Lists</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, update, delete, or get","enum":["create","update","delete","get"]},{"name":"boardId","type":"string","required":false,"desc":"Board ID (required for create)"},{"name":"listId","type":"string","required":false,"desc":"List ID (required for update/delete/get)"},{"name":"name","type":"string","required":false,"desc":"List name"},{"name":"position","type":"integer","required":false,"desc":"List position"}]'>
         <div class="tool-icon">&#128262;</div>
         <div>
           <div class="tool-name">planka_manage_lists</div>
           <div class="tool-desc">Create, update, delete, or get a list on a board</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"listId","type":"string","required":true,"desc":"List ID (from planka_get_board)"},{"name":"field","type":"string","required":true,"desc":"Field to sort by","enum":["name","dueDate","createdAt"]}]'>
         <div class="tool-icon">&#128280;</div>
         <div>
           <div class="tool-name">planka_sort_list</div>
           <div class="tool-desc">Sort cards within a list by a specified field</div>
         </div>
       </div>
-    </div>
-
-    <h3>Cards</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"listId","type":"string","required":true,"desc":"The list ID (from planka_get_board)"},{"name":"name","type":"string","required":true,"desc":"Card title"},{"name":"description","type":"string","required":false,"desc":"Card description (markdown supported)"},{"name":"dueDate","type":"string","required":false,"desc":"Due date in ISO format"},{"name":"labelIds","type":"array","required":false,"desc":"Label IDs to attach (from planka_get_board)"}]'>
         <div class="tool-icon">&#10133;</div>
         <div>
           <div class="tool-name">planka_create_card</div>
           <div class="tool-desc">Create a new card on a board, with optional tasks</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"}]'>
         <div class="tool-icon">&#128196;</div>
         <div>
           <div class="tool-name">planka_get_card</div>
           <div class="tool-desc">Get full details of a card including tasks, comments, and attachments</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"},{"name":"name","type":"string","required":false,"desc":"New card title"},{"name":"description","type":"string","required":false,"desc":"New description (empty string to clear)"},{"name":"dueDate","type":"string","required":false,"desc":"New due date in ISO format (empty string to clear)"},{"name":"isClosed","type":"boolean","required":false,"desc":"Close or reopen a card"}]'>
         <div class="tool-icon">&#9998;</div>
         <div>
           <div class="tool-name">planka_update_card</div>
           <div class="tool-desc">Update a card's name, description, due date, or completion status</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"},{"name":"listId","type":"string","required":true,"desc":"Target list ID (from planka_get_board)"},{"name":"position","type":"integer","required":false,"desc":"Position in the list (lower = higher). Default: end of list"}]'>
         <div class="tool-icon">&#8651;</div>
         <div>
           <div class="tool-name">planka_move_card</div>
           <div class="tool-desc">Move a card to a different list or position</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID to delete (from planka_get_board or planka_get_card)"}]'>
         <div class="tool-icon">&#128465;</div>
         <div>
           <div class="tool-name">planka_delete_card</div>
           <div class="tool-desc">Permanently delete a card</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID to duplicate (from planka_get_board or planka_get_card)"}]'>
         <div class="tool-icon">&#128203;</div>
         <div>
           <div class="tool-name">planka_duplicate_card</div>
           <div class="tool-desc">Duplicate an existing card into the same list</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: add or remove","enum":["add","remove"]},{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"},{"name":"userId","type":"string","required":true,"desc":"The user ID to add or remove"}]'>
         <div class="tool-icon">&#128104;</div>
         <div>
           <div class="tool-name">planka_manage_card_membership</div>
           <div class="tool-desc">Add or remove a user as a member of a card</div>
         </div>
       </div>
-    </div>
-
-    <h3>Labels</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: create, update, or delete","enum":["create","update","delete"]},{"name":"boardId","type":"string","required":false,"desc":"Board ID (required for create)"},{"name":"labelId","type":"string","required":false,"desc":"Label ID (required for update/delete)"},{"name":"name","type":"string","required":false,"desc":"Label name"},{"name":"color","type":"string","required":false,"desc":"Label color","enum":["berry-red","pumpkin-orange","lagoon-blue","pink-tulip","light-mud","orange-peel","sky-blue","coconut-milk","matte-green","pistachio","sea-foam","pale-sky","old-rose","moss-green","midnight-blue","sunrise","dark-granite","gunmetal","wet-stone","canary-yellow","fine-emerald","morning-sky","sunny-grass"]}]'>
         <div class="tool-icon">&#127991;</div>
         <div>
           <div class="tool-name">planka_manage_labels</div>
           <div class="tool-desc">Create, update, or delete labels on a board</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"},{"name":"addLabelIds","type":"array","required":false,"desc":"Label IDs to add (from planka_get_board)"},{"name":"removeLabelIds","type":"array","required":false,"desc":"Label IDs to remove (from planka_get_board)"}]'>
         <div class="tool-icon">&#128204;</div>
         <div>
           <div class="tool-name">planka_set_card_labels</div>
           <div class="tool-desc">Add or remove labels from a card</div>
         </div>
       </div>
-    </div>
-
-    <h3>Tasks</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"},{"name":"tasks","type":"array","required":true,"desc":"Task names to create"}]'>
         <div class="tool-icon">&#9989;</div>
         <div>
           <div class="tool-name">planka_create_tasks</div>
           <div class="tool-desc">Add one or more checklist items to a card</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"taskId","type":"string","required":true,"desc":"The task ID (from planka_get_card)"},{"name":"isCompleted","type":"boolean","required":false,"desc":"Mark as complete/incomplete"},{"name":"name","type":"string","required":false,"desc":"New task name"}]'>
         <div class="tool-icon">&#128221;</div>
         <div>
           <div class="tool-name">planka_update_task</div>
           <div class="tool-desc">Update a task's name or completion status</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"taskId","type":"string","required":true,"desc":"The task ID to delete (from planka_get_card)"}]'>
         <div class="tool-icon">&#128465;</div>
         <div>
           <div class="tool-name">planka_delete_task</div>
           <div class="tool-desc">Delete a task from a card</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"taskListId","type":"string","required":true,"desc":"The task list ID to update"},{"name":"name","type":"string","required":false,"desc":"New task list name"}]'>
         <div class="tool-icon">&#9997;</div>
         <div>
           <div class="tool-name">planka_update_task_list</div>
           <div class="tool-desc">Update a task list's name</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"taskListId","type":"string","required":true,"desc":"The task list ID to delete"}]'>
         <div class="tool-icon">&#128468;</div>
         <div>
           <div class="tool-name">planka_delete_task_list</div>
           <div class="tool-desc">Delete a task list and all its tasks from a card</div>
         </div>
       </div>
-    </div>
-
-    <h3>Comments</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"},{"name":"text","type":"string","required":true,"desc":"Comment text (markdown supported)"}]'>
         <div class="tool-icon">&#128172;</div>
         <div>
           <div class="tool-name">planka_add_comment</div>
           <div class="tool-desc">Add a comment to a card (markdown supported)</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID (from planka_get_board or planka_get_card)"}]'>
         <div class="tool-icon">&#128444;</div>
         <div>
           <div class="tool-name">planka_get_comments</div>
           <div class="tool-desc">Get all comments on a card</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"commentId","type":"string","required":true,"desc":"The comment ID to update"},{"name":"text","type":"string","required":true,"desc":"New comment text (markdown supported)"}]'>
         <div class="tool-icon">&#9998;</div>
         <div>
           <div class="tool-name">planka_update_comment</div>
           <div class="tool-desc">Update the text of an existing comment</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"commentId","type":"string","required":true,"desc":"The comment ID to delete"}]'>
         <div class="tool-icon">&#128465;</div>
         <div>
           <div class="tool-name">planka_delete_comment</div>
           <div class="tool-desc">Delete a comment from a card</div>
         </div>
       </div>
-    </div>
-
-    <h3>Attachments</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"cardId","type":"string","required":true,"desc":"The card ID to attach the file to (from planka_get_board or planka_get_card)"},{"name":"filePath","type":"string","required":true,"desc":"Absolute path to the file on the MCP server filesystem"},{"name":"filename","type":"string","required":true,"desc":"Filename to use for the attachment"}]'>
         <div class="tool-icon">&#128206;</div>
         <div>
           <div class="tool-name">planka_upload_attachment</div>
           <div class="tool-desc">Upload a file attachment to a card</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: update or delete","enum":["update","delete"]},{"name":"attachmentId","type":"string","required":false,"desc":"Attachment ID (required for update and delete)"},{"name":"isCover","type":"boolean","required":false,"desc":"Set as card cover image (for update)"},{"name":"name","type":"string","required":false,"desc":"New name for the attachment (for update)"}]'>
         <div class="tool-icon">&#128247;</div>
         <div>
           <div class="tool-name">planka_manage_attachments</div>
           <div class="tool-desc">Update or delete an attachment on a card</div>
         </div>
       </div>
-    </div>
-
-    <h3>Users</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform: list, get, create, update, or delete","enum":["list","get","create","update","delete"]},{"name":"userId","type":"string","required":false,"desc":"User ID (required for get, update, delete)"},{"name":"email","type":"string","required":false,"desc":"Email address (required for create)"},{"name":"name","type":"string","required":false,"desc":"Display name (optional for create, update)"},{"name":"password","type":"string","required":false,"desc":"Password (required for create)"},{"name":"username","type":"string","required":false,"desc":"Username (required for create)"}]'>
         <div class="tool-icon">&#128106;</div>
         <div>
           <div class="tool-name">planka_manage_users</div>
           <div class="tool-desc">List, get, create, update, or delete Planka users</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"action","type":"string","required":true,"desc":"Action to perform","enum":["update-email","update-password","update-username"]},{"name":"userId","type":"string","required":true,"desc":"User ID"},{"name":"currentPassword","type":"string","required":true,"desc":"Current password for verification"},{"name":"email","type":"string","required":false,"desc":"New email address (required for update-email)"},{"name":"newPassword","type":"string","required":false,"desc":"New password (required for update-password)"},{"name":"username","type":"string","required":false,"desc":"New username (required for update-username)"}]'>
         <div class="tool-icon">&#128272;</div>
         <div>
           <div class="tool-name">planka_manage_user_credentials</div>
           <div class="tool-desc">Update a user's email, password, or username</div>
         </div>
       </div>
-    </div>
-
-    <h3>Notifications</h3>
-    <div class="tools">
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[]'>
         <div class="tool-icon">&#128276;</div>
         <div>
           <div class="tool-name">planka_get_notifications</div>
           <div class="tool-desc">List all notifications for the authenticated user</div>
         </div>
       </div>
-      <div class="tool">
+      <div class="tool" role="button" tabindex="0" data-params='[{"name":"notificationId","type":"string","required":true,"desc":"The notification ID to update"},{"name":"isRead","type":"boolean","required":false,"desc":"Whether to mark the notification as read (default: true)"}]'>
         <div class="tool-icon">&#128277;</div>
         <div>
           <div class="tool-name">planka_mark_notification_read</div>
@@ -359,6 +319,21 @@
     </div>
   </div>
 </footer>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
+    <button class="modal-close" id="modal-close" aria-label="Close">&#215;</button>
+    <div class="modal-header">
+      <div class="tool-icon" id="modal-icon"></div>
+      <div>
+        <div class="modal-tool-name" id="modal-name"></div>
+        <div class="modal-tool-tag">MCP Tool</div>
+      </div>
+    </div>
+    <p class="modal-tool-desc" id="modal-desc"></p>
+    <div id="modal-params"></div>
+  </div>
+</div>
 
 <script src="/js/app.js"></script>
 </body>

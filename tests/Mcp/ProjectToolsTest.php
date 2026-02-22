@@ -283,10 +283,10 @@ final class ProjectToolsTest extends TestCase
         $this->projectService
             ->expects($this->once())
             ->method('removeProjectManager')
-            ->with('test-api-key', 'proj1', 'user1')
+            ->with('test-api-key', 'pm1')
             ->willReturn([]);
 
-        $result = $this->tools->manageProjectManagers('remove', 'proj1', 'user1');
+        $result = $this->tools->manageProjectManagers('remove', 'proj1', null, 'pm1');
 
         $this->assertSame([], $result);
     }
@@ -353,7 +353,7 @@ final class ProjectToolsTest extends TestCase
         $this->expectException(ToolCallException::class);
         $this->expectExceptionMessage('Server error');
 
-        $this->tools->manageProjectManagers('remove', 'proj1', 'user1');
+        $this->tools->manageProjectManagers('remove', 'proj1', null, 'pm1');
     }
 
     public function testManageProjectManagersWrapsNotFoundExceptionInToolCallException(): void

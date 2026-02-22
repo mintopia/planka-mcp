@@ -31,7 +31,7 @@ final class CardServiceTest extends TestCase
     // createCard()
     // -------------------------------------------------------------------------
 
-    public function testCreateCardWithAllParamsBuildsCorrectBody(): void
+    public function testCreateCardWithDescriptionBuildsCorrectBody(): void
     {
         $expected = ['item' => ['id' => self::CARD_ID, 'name' => 'My Card']];
 
@@ -41,11 +41,14 @@ final class CardServiceTest extends TestCase
             ->with(
                 self::API_KEY,
                 '/api/lists/' . self::LIST_ID . '/cards',
-                [
-                    'name' => 'My Card',
-                    'description' => 'Some description',
-                    'dueDate' => '2026-03-01T12:00:00.000Z',
-                ],
+                $this->callback(function (array $body): bool {
+                    $this->assertSame('My Card', $body['name']);
+                    $this->assertSame('Some description', $body['description']);
+                    $this->assertSame('project', $body['type']);
+                    $this->assertSame(65536, $body['position']);
+                    $this->assertArrayHasKey('requestId', $body);
+                    return true;
+                }),
             )
             ->willReturn($expected);
 
@@ -54,7 +57,6 @@ final class CardServiceTest extends TestCase
             listId: self::LIST_ID,
             name: 'My Card',
             description: 'Some description',
-            dueDate: '2026-03-01T12:00:00.000Z',
         );
 
         $this->assertSame($expected, $result);
@@ -70,7 +72,14 @@ final class CardServiceTest extends TestCase
             ->with(
                 self::API_KEY,
                 '/api/lists/' . self::LIST_ID . '/cards',
-                ['name' => 'Minimal Card'],
+                $this->callback(function (array $body): bool {
+                    $this->assertSame('Minimal Card', $body['name']);
+                    $this->assertSame('project', $body['type']);
+                    $this->assertSame(65536, $body['position']);
+                    $this->assertArrayHasKey('requestId', $body);
+                    $this->assertArrayNotHasKey('description', $body);
+                    return true;
+                }),
             )
             ->willReturn($expected);
 
@@ -83,9 +92,9 @@ final class CardServiceTest extends TestCase
         $this->assertSame($expected, $result);
     }
 
-    public function testCreateCardWithDescriptionOnlyOmitsDueDate(): void
+    public function testCreateCardWithTypeStory(): void
     {
-        $expected = ['item' => ['id' => self::CARD_ID, 'name' => 'Card With Desc']];
+        $expected = ['item' => ['id' => self::CARD_ID, 'name' => 'Story Card']];
 
         $this->plankaClient
             ->expects($this->once())
@@ -93,45 +102,20 @@ final class CardServiceTest extends TestCase
             ->with(
                 self::API_KEY,
                 '/api/lists/' . self::LIST_ID . '/cards',
-                [
-                    'name' => 'Card With Desc',
-                    'description' => 'A description',
-                ],
+                $this->callback(function (array $body): bool {
+                    $this->assertSame('Story Card', $body['name']);
+                    $this->assertSame('story', $body['type']);
+                    $this->assertSame(65536, $body['position']);
+                    return true;
+                }),
             )
             ->willReturn($expected);
 
         $result = $this->service->createCard(
             apiKey: self::API_KEY,
             listId: self::LIST_ID,
-            name: 'Card With Desc',
-            description: 'A description',
-        );
-
-        $this->assertSame($expected, $result);
-    }
-
-    public function testCreateCardWithDueDateOnlyOmitsDescription(): void
-    {
-        $expected = ['item' => ['id' => self::CARD_ID, 'name' => 'Dated Card']];
-
-        $this->plankaClient
-            ->expects($this->once())
-            ->method('post')
-            ->with(
-                self::API_KEY,
-                '/api/lists/' . self::LIST_ID . '/cards',
-                [
-                    'name' => 'Dated Card',
-                    'dueDate' => '2026-06-15T00:00:00.000Z',
-                ],
-            )
-            ->willReturn($expected);
-
-        $result = $this->service->createCard(
-            apiKey: self::API_KEY,
-            listId: self::LIST_ID,
-            name: 'Dated Card',
-            dueDate: '2026-06-15T00:00:00.000Z',
+            name: 'Story Card',
+            type: 'story',
         );
 
         $this->assertSame($expected, $result);
@@ -150,7 +134,10 @@ final class CardServiceTest extends TestCase
                     $callCount++;
                     if ($callCount === 1) {
                         $this->assertSame('/api/lists/' . self::LIST_ID . '/cards', $path);
-                        $this->assertSame(['name' => 'Card With Labels'], $body);
+                        $this->assertSame('Card With Labels', $body['name']);
+                        $this->assertSame('project', $body['type']);
+                        $this->assertSame(65536, $body['position']);
+                        $this->assertArrayHasKey('requestId', $body);
                         return $cardResponse;
                     }
                     $this->assertStringStartsWith('/api/cards/' . self::CARD_ID . '/card-labels', $path);
@@ -320,7 +307,7 @@ final class CardServiceTest extends TestCase
                     'name' => 'Updated',
                     'description' => 'New description',
                     'dueDate' => '2026-04-01T09:00:00.000Z',
-                    'isCompleted' => true,
+                    'isClosed' => true,
                 ],
             )
             ->willReturn($expected);
@@ -331,7 +318,7 @@ final class CardServiceTest extends TestCase
             name: 'Updated',
             description: 'New description',
             dueDate: '2026-04-01T09:00:00.000Z',
-            isCompleted: true,
+            isClosed: true,
         );
 
         $this->assertSame($expected, $result);
@@ -360,9 +347,9 @@ final class CardServiceTest extends TestCase
         $this->assertSame($expected, $result);
     }
 
-    public function testUpdateCardIsCompletedFalseIsIncludedInBody(): void
+    public function testUpdateCardIsClosedFalseIsIncludedInBody(): void
     {
-        $expected = ['item' => ['id' => self::CARD_ID, 'isCompleted' => false]];
+        $expected = ['item' => ['id' => self::CARD_ID, 'isClosed' => false]];
 
         $this->plankaClient
             ->expects($this->once())
@@ -370,14 +357,14 @@ final class CardServiceTest extends TestCase
             ->with(
                 self::API_KEY,
                 '/api/cards/' . self::CARD_ID,
-                ['isCompleted' => false],
+                ['isClosed' => false],
             )
             ->willReturn($expected);
 
         $result = $this->service->updateCard(
             apiKey: self::API_KEY,
             cardId: self::CARD_ID,
-            isCompleted: false,
+            isClosed: false,
         );
 
         $this->assertSame($expected, $result);
@@ -573,7 +560,7 @@ final class CardServiceTest extends TestCase
         $this->assertSame($expected, $result);
     }
 
-    public function testMoveCardWithoutPositionOmitsPositionField(): void
+    public function testMoveCardWithoutPositionDefaultsTo65536(): void
     {
         $expected = ['item' => ['id' => self::CARD_ID, 'listId' => 'list-new']];
 
@@ -583,7 +570,7 @@ final class CardServiceTest extends TestCase
             ->with(
                 self::API_KEY,
                 '/api/cards/' . self::CARD_ID,
-                ['listId' => 'list-new'],
+                ['listId' => 'list-new', 'position' => 65536],
             )
             ->willReturn($expected);
 
@@ -700,7 +687,7 @@ final class CardServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/duplicate', [])
+            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/duplicate', ['position' => 65536])
             ->willReturn($expected);
 
         $result = $this->service->duplicateCard(self::API_KEY, self::CARD_ID);
@@ -752,7 +739,7 @@ final class CardServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/memberships', ['userId' => 'user1'])
+            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/card-memberships', ['userId' => 'user1'])
             ->willReturn($expected);
 
         $result = $this->service->addCardMember(self::API_KEY, self::CARD_ID, 'user1');
@@ -791,7 +778,7 @@ final class CardServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('delete')
-            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/memberships/userId:user1')
+            ->with(self::API_KEY, '/api/cards/' . self::CARD_ID . '/card-memberships/userId:user1')
             ->willReturn([]);
 
         $result = $this->service->removeCardMember(self::API_KEY, self::CARD_ID, 'user1');

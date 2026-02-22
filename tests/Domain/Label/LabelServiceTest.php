@@ -32,7 +32,7 @@ final class LabelServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/boards/board1/labels', ['name' => 'Bug', 'color' => 'red'])
+            ->with('test-api-key', '/api/boards/board1/labels', ['position' => 65536, 'name' => 'Bug', 'color' => 'red'])
             ->willReturn($expected);
 
         $result = $this->service->manageLabel(
@@ -53,7 +53,7 @@ final class LabelServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/boards/board1/labels', [])
+            ->with('test-api-key', '/api/boards/board1/labels', ['position' => 65536])
             ->willReturn($expected);
 
         $result = $this->service->manageLabel(

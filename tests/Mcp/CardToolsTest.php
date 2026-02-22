@@ -54,7 +54,7 @@ final class CardToolsTest extends TestCase
                 self::LIST_ID,
                 'Full Card',
                 'A description',
-                '2026-03-01T12:00:00.000Z',
+                'story',
                 $labelIds,
             )
             ->willReturn($expected);
@@ -63,7 +63,7 @@ final class CardToolsTest extends TestCase
             listId: self::LIST_ID,
             name: 'Full Card',
             description: 'A description',
-            dueDate: '2026-03-01T12:00:00.000Z',
+            type: 'story',
             labelIds: $labelIds,
         );
 
@@ -259,7 +259,7 @@ final class CardToolsTest extends TestCase
 
     public function testUpdateCardSuccessWithAllParams(): void
     {
-        $expected = ['item' => ['id' => self::CARD_ID, 'name' => 'Complete', 'isCompleted' => true]];
+        $expected = ['item' => ['id' => self::CARD_ID, 'name' => 'Complete', 'isClosed' => true]];
 
         $this->apiKeyProvider
             ->expects($this->once())
@@ -284,7 +284,7 @@ final class CardToolsTest extends TestCase
             name: 'Complete',
             description: 'Done now',
             dueDate: '2026-02-21T00:00:00.000Z',
-            isCompleted: true,
+            isClosed: true,
         );
 
         $this->assertSame($expected, $result);
@@ -296,7 +296,7 @@ final class CardToolsTest extends TestCase
         $this->cardService->expects($this->never())->method('updateCard');
 
         $this->expectException(ToolCallException::class);
-        $this->expectExceptionMessage('At least one field (name, description, dueDate, or isCompleted) must be provided.');
+        $this->expectExceptionMessage('At least one field (name, description, dueDate, or isClosed) must be provided.');
 
         $this->tools->updateCard(cardId: self::CARD_ID);
     }

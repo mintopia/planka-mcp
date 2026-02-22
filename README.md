@@ -276,6 +276,49 @@ A machine-readable `var/coverage/clover.xml` is also generated alongside the HTM
 
 The project enforces **100% code coverage**. The CI pipeline will fail if coverage drops below 100%.
 
+### Integration tests
+
+`test_integration.sh` exercises all 32 MCP tools against a real running Planka instance via the MCP Streamable HTTP protocol. It creates real resources (project, board, lists, cards, labels, tasks, comments, attachments, users, etc.), tests each tool, and cleans everything up at the end.
+
+#### Requirements
+
+- `bash`, `curl`, and `jq` installed on the host
+- A running planka-mcp server (local or remote)
+- A Planka 2 instance the server can reach
+- A Planka API key with admin privileges (the test creates and deletes users)
+
+#### Configuration
+
+The script has two variables at the top that must be set before running:
+
+```bash
+BASE="http://localhost:8080/mcp"   # MCP endpoint of your planka-mcp server
+API_KEY="<your-planka-api-key>"    # Planka API key
+```
+
+Edit them directly in the script, or override them as environment variables if you prefer not to modify the file:
+
+```bash
+BASE=https://your-server/mcp API_KEY=<key> ./test_integration.sh
+```
+
+#### Running
+
+```bash
+chmod +x test_integration.sh
+./test_integration.sh
+```
+
+The script prints a `✓` / `✗` line per test and a final summary:
+
+```
+── SUMMARY ─────────────────────────────
+  Passed: 49 / 49
+  Failed: 0
+```
+
+All resources created during the run are deleted in a cleanup phase at the end, even if earlier tests fail.
+
 ### Static analysis
 
 ```bash

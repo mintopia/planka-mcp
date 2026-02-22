@@ -68,7 +68,7 @@ final class ProjectServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/projects', ['name' => 'New Project'])
+            ->with('test-api-key', '/api/projects', ['name' => 'New Project', 'type' => 'shared'])
             ->willReturn($expected);
 
         $result = $this->service->createProject('test-api-key', 'New Project');
@@ -289,10 +289,10 @@ final class ProjectServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('delete')
-            ->with('test-api-key', '/api/projects/proj1/project-managers/userId:user1')
+            ->with('test-api-key', '/api/project-managers/pm1')
             ->willReturn([]);
 
-        $result = $this->service->removeProjectManager('test-api-key', 'proj1', 'user1');
+        $result = $this->service->removeProjectManager('test-api-key', 'pm1');
 
         $this->assertSame([], $result);
     }
@@ -305,7 +305,7 @@ final class ProjectServiceTest extends TestCase
 
         $this->expectException(AuthenticationException::class);
 
-        $this->service->removeProjectManager('bad-key', 'proj1', 'user1');
+        $this->service->removeProjectManager('bad-key', 'pm1');
     }
 
     public function testRemoveProjectManagerPropagatesApiException(): void
@@ -316,6 +316,6 @@ final class ProjectServiceTest extends TestCase
 
         $this->expectException(PlankaApiException::class);
 
-        $this->service->removeProjectManager('test-api-key', 'proj1', 'user1');
+        $this->service->removeProjectManager('test-api-key', 'pm1');
     }
 }

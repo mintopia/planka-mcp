@@ -27,7 +27,7 @@ final class CardTools
         #[Schema(description: 'The list ID (from planka_get_board)')] string $listId,
         #[Schema(description: 'Card title')] string $name,
         #[Schema(description: 'Card description (markdown supported)')] ?string $description = null,
-        #[Schema(description: 'Due date in ISO format', format: 'date-time')] ?string $dueDate = null,
+        #[Schema(description: 'Card type', enum: ['project', 'story'])] ?string $type = null,
         #[Schema(description: 'Optional: Label IDs to attach (from planka_get_board)', items: ['type' => 'string'])] ?array $labelIds = null,
     ): array {
         try {
@@ -37,7 +37,7 @@ final class CardTools
 
             $apiKey = $this->apiKeyProvider->getApiKey();
 
-            return $this->cardService->createCard($apiKey, $listId, $name, $description, $dueDate, $labelIds);
+            return $this->cardService->createCard($apiKey, $listId, $name, $description, $type, $labelIds);
         } catch (\Throwable $e) {
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }
@@ -64,16 +64,16 @@ final class CardTools
         #[Schema(description: 'New card title')] ?string $name = null,
         #[Schema(description: 'New description (empty string to clear)')] ?string $description = null,
         #[Schema(description: 'New due date in ISO format (empty string to clear)', format: 'date-time')] ?string $dueDate = null,
-        #[Schema(description: 'Mark card as complete/incomplete')] ?bool $isCompleted = null,
+        #[Schema(description: 'Close or reopen a card')] ?bool $isClosed = null,
     ): array {
         try {
-            if ($name === null && $description === null && $dueDate === null && $isCompleted === null) {
-                throw new ValidationException('At least one field (name, description, dueDate, or isCompleted) must be provided.');
+            if ($name === null && $description === null && $dueDate === null && $isClosed === null) {
+                throw new ValidationException('At least one field (name, description, dueDate, or isClosed) must be provided.');
             }
 
             $apiKey = $this->apiKeyProvider->getApiKey();
 
-            return $this->cardService->updateCard($apiKey, $cardId, $name, $description, $dueDate, $isCompleted);
+            return $this->cardService->updateCard($apiKey, $cardId, $name, $description, $dueDate, $isClosed);
         } catch (\Throwable $e) {
             throw new ToolCallException($e->getMessage(), $e->getCode(), $e);
         }

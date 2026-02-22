@@ -95,7 +95,7 @@ final class BoardServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/projects/proj1/boards', ['name' => 'Sprint'])
+            ->with('test-api-key', '/api/projects/proj1/boards', ['name' => 'Sprint', 'position' => 65536])
             ->willReturn($expected);
 
         $result = $this->service->createBoard('test-api-key', 'proj1', 'Sprint');
@@ -240,7 +240,7 @@ final class BoardServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/boards/board1/memberships', ['userId' => 'user1', 'role' => 'editor'])
+            ->with('test-api-key', '/api/boards/board1/board-memberships', ['userId' => 'user1', 'role' => 'editor'])
             ->willReturn($expected);
 
         $result = $this->service->addBoardMember('test-api-key', 'board1', 'user1');
@@ -255,7 +255,7 @@ final class BoardServiceTest extends TestCase
         $this->plankaClient
             ->expects($this->once())
             ->method('post')
-            ->with('test-api-key', '/api/boards/board1/memberships', ['userId' => 'user1', 'role' => 'viewer'])
+            ->with('test-api-key', '/api/boards/board1/board-memberships', ['userId' => 'user1', 'role' => 'viewer'])
             ->willReturn($expected);
 
         $result = $this->service->addBoardMember('test-api-key', 'board1', 'user1', 'viewer');

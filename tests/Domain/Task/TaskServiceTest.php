@@ -33,13 +33,13 @@ final class TaskServiceTest extends TestCase
             ->willReturnCallback(function (string $apiKey, string $path, array $body) use ($taskListResponse, $taskResponse): array {
                 if ($path === '/api/cards/card123/task-lists') {
                     $this->assertSame('test-api-key', $apiKey);
-                    $this->assertSame(['name' => 'Tasks'], $body);
+                    $this->assertSame(['name' => 'Tasks', 'position' => 65536], $body);
 
                     return $taskListResponse;
                 }
 
                 $this->assertSame('/api/task-lists/tl123/tasks', $path);
-                $this->assertSame(['name' => 'Task 1'], $body);
+                $this->assertSame(['name' => 'Task 1', 'position' => 65536], $body);
 
                 return $taskResponse;
             });
@@ -66,12 +66,13 @@ final class TaskServiceTest extends TestCase
 
                 if ($postCallCount === 1) {
                     $this->assertSame('/api/cards/card123/task-lists', $path);
-                    $this->assertSame(['name' => 'Tasks'], $body);
+                    $this->assertSame(['name' => 'Tasks', 'position' => 65536], $body);
 
                     return $taskListResponse;
                 }
 
                 $this->assertSame('/api/task-lists/tl123/tasks', $path);
+                $this->assertArrayHasKey('position', $body);
 
                 return ['item' => ['id' => 'task' . $postCallCount, 'name' => $body['name']]];
             });

@@ -7,7 +7,7 @@ services:
       - "8080:80"
     environment:
       APP_ENV: dev
-      APP_DEBUG: 0
+      APP_DEBUG: 1
       APP_SECRET: ${APP_SECRET:-dev-secret-change-for-production}
       PLANKA_URL: ${PLANKA_URL:?PLANKA_URL is required}
       XDEBUG_MODE: ${XDEBUG_MODE:-debug}

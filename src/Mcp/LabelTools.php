@@ -44,7 +44,7 @@ final class LabelTools
     public function setCardLabels(
         #[Schema(description: 'The card ID (from planka_get_board or planka_get_card)')] string $cardId,
         #[Schema(description: 'Label IDs to add (from planka_get_board)', items: ['type' => 'string'])] ?array $addLabelIds = null,
-        #[Schema(description: 'Label IDs to remove (from planka_get_board)', items: ['type' => 'string'])] ?array $removeLabelIds = null,
+        #[Schema(description: 'Label IDs to remove from the card (from planka_get_board — these are the label IDs, same as used for addLabelIds)', items: ['type' => 'string'])] ?array $removeLabelIds = null,
     ): array {
         try {
             $apiKey = $this->apiKeyProvider->getApiKey();

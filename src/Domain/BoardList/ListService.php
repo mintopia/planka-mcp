@@ -40,18 +40,15 @@ final class ListService
     /** @return array<mixed> */
     public function sortList(string $apiKey, string $listId, string $field): array
     {
-        return $this->plankaClient->post($apiKey, '/api/lists/' . $listId . '/sort', ['field' => $field]);
+        return $this->plankaClient->post($apiKey, '/api/lists/' . $listId . '/sort', ['fieldName' => $field]);
     }
 
     /** @return array<mixed> */
     private function createList(string $apiKey, string $boardId, ?string $name, ?int $position): array
     {
-        $body = [];
+        $body = ['type' => 'active', 'position' => $position ?? 65536];
         if ($name !== null) {
             $body['name'] = $name;
-        }
-        if ($position !== null) {
-            $body['position'] = $position;
         }
         return $this->plankaClient->post($apiKey, '/api/boards/' . $boardId . '/lists', $body);
     }

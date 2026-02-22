@@ -19,6 +19,9 @@
 				num 1
 				watch /app/src/**/*.php
 				watch /app/config/**/*.{yaml,yml}
+				watch /app/templates/**/*.twig
+				watch /app/public/**/*.css
+				watch /app/public/**/*.js
 			}
 		}
 	}

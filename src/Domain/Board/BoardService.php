@@ -21,10 +21,7 @@ final class BoardService
     /** @return array<mixed> */
     public function createBoard(string $apiKey, string $projectId, string $name, ?int $position = null): array
     {
-        $body = ['name' => $name];
-        if ($position !== null) {
-            $body['position'] = $position;
-        }
+        $body = ['name' => $name, 'position' => $position ?? 65536];
         return $this->plankaClient->post($apiKey, '/api/projects/' . $projectId . '/boards', $body);
     }
 
@@ -50,7 +47,7 @@ final class BoardService
     /** @return array<mixed> */
     public function addBoardMember(string $apiKey, string $boardId, string $userId, string $role = 'editor'): array
     {
-        return $this->plankaClient->post($apiKey, '/api/boards/' . $boardId . '/memberships', ['userId' => $userId, 'role' => $role]);
+        return $this->plankaClient->post($apiKey, '/api/boards/' . $boardId . '/board-memberships', ['userId' => $userId, 'role' => $role]);
     }
 
     /** @return array<mixed> */

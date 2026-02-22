@@ -42,4 +42,97 @@
       });
     });
   });
+
+  /* ── tool modal ── */
+  var overlay    = document.getElementById('modal-overlay');
+  var modalClose = document.getElementById('modal-close');
+  var mIcon      = document.getElementById('modal-icon');
+  var mName      = document.getElementById('modal-name');
+  var mDesc      = document.getElementById('modal-desc');
+  var mParams    = document.getElementById('modal-params');
+
+  function openModal(tool) {
+    var name   = tool.querySelector('.tool-name').textContent;
+    var desc   = tool.querySelector('.tool-desc').textContent;
+    var icon   = tool.querySelector('.tool-icon').innerHTML;
+    var params = [];
+    try { params = JSON.parse(tool.dataset.params || '[]'); } catch (e) {}
+
+    mIcon.innerHTML    = icon;
+    mName.textContent  = name;
+    mDesc.textContent  = desc;
+    mParams.innerHTML  = '';
+
+    if (params.length > 0) {
+      var label = document.createElement('div');
+      label.className   = 'modal-params-label';
+      label.textContent = 'Parameters';
+      mParams.appendChild(label);
+
+      params.forEach(function (p) {
+        var row = document.createElement('div');
+        row.className = 'param-row';
+
+        var hdr = document.createElement('div');
+        hdr.className = 'param-row-header';
+
+        var pname = document.createElement('span');
+        pname.className   = 'param-name';
+        pname.textContent = p.name;
+        hdr.appendChild(pname);
+
+        var ptype = document.createElement('span');
+        ptype.className   = 'param-type';
+        ptype.textContent = p.type;
+        hdr.appendChild(ptype);
+
+        var badge = document.createElement('span');
+        badge.className   = p.required ? 'param-required' : 'param-optional';
+        badge.textContent = p.required ? 'required' : 'optional';
+        hdr.appendChild(badge);
+
+        row.appendChild(hdr);
+
+        if (p.desc) {
+          var pdesc = document.createElement('div');
+          pdesc.className   = 'param-desc';
+          pdesc.textContent = p.desc;
+          row.appendChild(pdesc);
+        }
+
+        if (p.enum && p.enum.length) {
+          var penum = document.createElement('div');
+          penum.className = 'param-enum';
+          p.enum.forEach(function (v) {
+            var span = document.createElement('span');
+            span.className   = 'param-enum-val';
+            span.textContent = v;
+            penum.appendChild(span);
+          });
+          row.appendChild(penum);
+        }
+
+        mParams.appendChild(row);
+      });
+    }
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.tool').forEach(function (tool) {
+    tool.addEventListener('click', function () { openModal(tool); });
+    tool.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(tool); }
+    });
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 }());

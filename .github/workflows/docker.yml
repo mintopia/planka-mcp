@@ -50,6 +50,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: docker/production/Dockerfile
           target: app
           push: true
           tags: ${{ steps.meta.outputs.tags }}

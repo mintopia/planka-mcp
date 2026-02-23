@@ -110,7 +110,7 @@ jobs:
       - name: Enforce 100% coverage
         run: |
           php -r "
-          \$xml = simplexml_load_file('var/coverage/clover.xml');
+          \$xml = simplexml_load_file('storage/coverage/clover.xml');
           \$metrics = \$xml->project->metrics;
           \$total   = (int)\$metrics['statements'];
           \$covered = (int)\$metrics['coveredstatements'];

@@ -80,6 +80,15 @@ final class HomeControllerTest extends TestCase
         }
     }
 
+    public function testHomePageCspInLocalMode(): void
+    {
+        $this->app['env'] = 'local';
+        $response = $this->get('/');
+        $csp = $response->headers->get('Content-Security-Policy');
+        $this->assertNotNull($csp);
+        $this->assertStringContainsString('localhost:5173', $csp);
+    }
+
     public function testHomePageCspInNonLocalMode(): void
     {
         $this->app['env'] = 'production';

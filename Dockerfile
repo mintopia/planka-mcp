@@ -66,7 +66,7 @@ COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
 
 RUN addgroup --system --gid 1001 laravel && \
     adduser --system --uid 1001 --ingroup laravel laravel && \
-    chown -R laravel:laravel /app/storage /app/bootstrap/cache /data /config
+    chown -R laravel:laravel /app /data /config
 
 USER laravel
 

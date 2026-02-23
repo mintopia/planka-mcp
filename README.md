@@ -1,10 +1,81 @@
 # planka-mcp
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes [Planka 2](https://planka.app) kanban board operations as AI tools.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes [Planka 2](https://planka.app) kanban board operations as AI resources and tools.
 
-Built with Symfony 7 and FrankenPHP, running in worker mode inside Docker. Multi-tenant: each MCP client supplies its own Planka API key per request — no credentials are stored server-side.
+Built with Laravel 12 and FrankenPHP, running in Octane worker mode inside Docker. Multi-tenant: each MCP client supplies its own Planka API key per request — no credentials are stored server-side.
 
-> **Symfony 8 note:** Upgrading to Symfony 8 is currently blocked by `runtime/frankenphp-symfony`, which only supports `symfony/runtime ^7.0`. This will be addressed once that package adds Symfony 8 support.
+## Resources
+
+MCP resources are read-only, URI-addressed views of Planka data. MCP clients can read them directly by URI.
+
+### System
+
+| Resource | URI |
+|---|---|
+| Config | `planka://config` |
+| Bootstrap | `planka://bootstrap` |
+
+### Structure
+
+| Resource | URI |
+|---|---|
+| Structure | `planka://structure` |
+| Projects | `planka://projects` |
+| Project | `planka://projects/{projectId}` |
+
+### Boards
+
+| Resource | URI |
+|---|---|
+| Board | `planka://boards/{boardId}` |
+| Board Actions | `planka://boards/{boardId}/actions` |
+
+### Lists
+
+| Resource | URI |
+|---|---|
+| List | `planka://lists/{listId}` |
+| List Cards | `planka://lists/{listId}/cards` |
+
+### Cards
+
+| Resource | URI |
+|---|---|
+| Card | `planka://cards/{cardId}` |
+| Card Comments | `planka://cards/{cardId}/comments` |
+| Card Actions | `planka://cards/{cardId}/actions` |
+
+### Tasks
+
+| Resource | URI |
+|---|---|
+| Task List | `planka://task-lists/{taskListId}` |
+
+### Custom Fields
+
+| Resource | URI |
+|---|---|
+| Custom Field Group | `planka://custom-field-groups/{groupId}` |
+
+### Users
+
+| Resource | URI |
+|---|---|
+| Users | `planka://users` |
+| User | `planka://users/{userId}` |
+
+### Notifications
+
+| Resource | URI |
+|---|---|
+| Notifications | `planka://notifications` |
+| Notification | `planka://notifications/{notificationId}` |
+
+### Webhooks
+
+| Resource | URI |
+|---|---|
+| Webhooks | `planka://webhooks` |
 
 ## Tools
 
@@ -100,7 +171,7 @@ Built with Symfony 7 and FrankenPHP, running in worker mode inside Docker. Multi
 
 | Tool | Description |
 |---|---|
-| `planka_manage_custom_field_groups` | Create, get, update, or delete custom field groups on projects (base groups), boards, or cards |
+| `planka_manage_custom_field_groups` | Create, get, update, or delete custom field groups on projects, boards, or cards |
 | `planka_manage_custom_fields` | Create, update, or delete custom fields within a custom field group |
 | `planka_manage_custom_field_values` | Set or delete a custom field value on a card |
 
@@ -136,14 +207,14 @@ Built with Symfony 7 and FrankenPHP, running in worker mode inside Docker. Multi
 
 ```bash
 cp .env.production.example .env.production
-# Edit .env.production — set APP_SECRET and PLANKA_URL
+# Edit .env.production — set APP_KEY and PLANKA_URL
 ```
 
-2. Generate a secret:
+2. Generate an application key:
 
 ```bash
-openssl rand -hex 32
-# Paste the output into .env.production as APP_SECRET
+docker run --rm ghcr.io/mintopia/planka-mcp:latest php artisan key:generate --show
+# Paste the output into .env.production as APP_KEY
 ```
 
 3. Start the server using the production Compose file:
@@ -168,7 +239,7 @@ docker run -d \
   --name planka-mcp \
   --restart unless-stopped \
   -p 8080:80 \
-  -e APP_SECRET=$(openssl rand -hex 32) \
+  -e APP_KEY=base64:$(openssl rand -base64 32) \
   -e PLANKA_URL=https://your-planka-instance.example.com \
   ghcr.io/mintopia/planka-mcp:latest
 ```
@@ -178,10 +249,23 @@ docker run -d \
 | Variable | Required | Description |
 |---|---|---|
 | `PLANKA_URL` | Yes | Base URL of your Planka instance (e.g. `https://planka.example.com`) |
-| `APP_SECRET` | Yes | Random string used for Symfony internals — generate with `openssl rand -hex 32` |
-| `APP_ENV` | No | `prod` (default) or `dev` |
+| `APP_KEY` | Yes | Laravel application key — generate with `php artisan key:generate --show` |
+| `APP_URL` | No | Public URL of this server (used in generated config examples) |
+| `APP_ENV` | No | `production` (default) or `local` |
+| `REDIS_HOST` | No | Redis hostname — defaults to `redis` in Docker Compose, `127.0.0.1` otherwise |
+| `REDIS_PORT` | No | Redis port — defaults to `6379` |
+| `REDIS_PASSWORD` | No | Redis password — defaults to none |
 
 The Planka API key is **never** configured server-side. It is passed by each client on every request (see [Authentication](#authentication) below).
+
+#### Webhook subscriptions (optional)
+
+Webhook subscription support allows Planka to push event notifications to the server, ready for forwarding to MCP clients when `laravel/mcp` adds `resources/subscribe` support.
+
+| Variable | Required | Description |
+|---|---|---|
+| `SUBSCRIPTION_ENABLED` | No | Set to `true` to enable the webhook endpoint — defaults to `false` |
+| `PLANKA_WEBHOOK_SECRET` | Recommended | HMAC-SHA256 secret for verifying incoming webhook signatures. Should always be set when `SUBSCRIPTION_ENABLED=true` |
 
 ## Authentication
 
@@ -264,6 +348,9 @@ curl http://localhost:8080/health
 
 ```bash
 composer install
+npm install
+npm run build
+php artisan key:generate
 ```
 
 Edit `.env` and set `PLANKA_URL` to your Planka instance.
@@ -273,14 +360,15 @@ Edit `.env` and set `PLANKA_URL` to your Planka instance.
 **Natively:**
 
 ```bash
+# Build assets (required before tests)
+npm run build
+
 # Run the test suite
 composer test
 
-# Run with HTML coverage report + clover.xml (outputs to var/coverage/)
+# Run with HTML coverage report + clover.xml (outputs to storage/coverage/)
 composer test-coverage
 ```
-
-> Requires XDebug installed locally for coverage. `composer test` works with any PHP 8.3+ installation.
 
 **Via Docker** (no local PHP required — XDebug is always present in the dev image):
 
@@ -292,59 +380,12 @@ docker compose run --rm --no-deps planka-mcp composer test
 docker compose run --rm --no-deps planka-mcp composer test-coverage
 ```
 
-The HTML report is written to `var/coverage/index.html`. Open it after the run:
+The HTML report is written to `storage/coverage/index.html`. Open it after the run:
 
 ```bash
-open var/coverage/index.html       # macOS
-xdg-open var/coverage/index.html  # Linux
+open storage/coverage/index.html       # macOS
+xdg-open storage/coverage/index.html  # Linux
 ```
-
-A machine-readable `var/coverage/clover.xml` is also generated alongside the HTML report.
-
-The project enforces **100% code coverage**. The CI pipeline will fail if coverage drops below 100%.
-
-### Integration tests
-
-`test_integration.sh` exercises all 39 MCP tools against a real running Planka instance via the MCP Streamable HTTP protocol. It creates real resources (project, board, lists, cards, labels, tasks, comments, webhooks, custom fields, etc.), tests each tool, and cleans everything up at the end.
-
-#### Requirements
-
-- `bash`, `curl`, and `jq` installed on the host
-- A running planka-mcp server (local or remote)
-- A Planka 2 instance the server can reach
-- A Planka API key with admin privileges (the test creates and deletes users)
-
-#### Configuration
-
-The script has two variables at the top that must be set before running:
-
-```bash
-BASE="http://localhost:8080/mcp"   # MCP endpoint of your planka-mcp server
-API_KEY="<your-planka-api-key>"    # Planka API key
-```
-
-Edit them directly in the script, or override them as environment variables if you prefer not to modify the file:
-
-```bash
-BASE=https://your-server/mcp API_KEY=<key> ./test_integration.sh
-```
-
-#### Running
-
-```bash
-chmod +x test_integration.sh
-./test_integration.sh
-```
-
-The script prints a `✓` / `✗` line per test and a final summary:
-
-```
-── SUMMARY ─────────────────────────────
-  Passed: 49 / 49
-  Failed: 0
-```
-
-All resources created during the run are deleted in a cleanup phase at the end, even if earlier tests fail.
 
 ### Static analysis
 
@@ -379,11 +420,17 @@ docker compose up
 
 The dev image is configured for automatic hot-reload — **no container restart is needed when you change source code**:
 
-- **`watch`** in the dev Caddyfile tells FrankenPHP to watch `src/**/*.php` and `config/**/*.{yaml,yml}` for changes and automatically restart the worker when any of those files are modified.
+- **`watch`** in the dev Caddyfile tells FrankenPHP to watch `app/**/*.php` and `config/**/*.php` for changes and automatically restart the worker when any of those files are modified.
 - **opcache is not installed** in the dev image, so PHP reads source files from disk on every worker boot rather than serving stale cached bytecode.
-- **`APP_ENV=dev`** tells the Symfony kernel to check for configuration, route, and service changes on each boot and regenerate its cache automatically.
+- **`APP_ENV=local`** tells the Laravel framework to check for configuration and service changes on each boot.
 
-Together these mean any change to a PHP file, route, or service definition takes effect within moments of saving — the worker restarts in the background and the next request is handled with fresh code.
+Together these mean any change to a PHP file or config takes effect within moments of saving — the worker restarts in the background and the next request is handled with fresh code.
+
+**Frontend assets** (CSS/JS) are compiled by Vite. In the development container, assets are automatically built on first start if `public/build` doesn't exist. To rebuild after changes:
+
+```bash
+docker compose run --rm --no-deps planka-mcp npm run build
+```
 
 #### XDebug
 
@@ -447,6 +494,8 @@ The entrypoint script runs `composer install` automatically if `vendor/autoload.
 
 ### Building the production Docker image locally
 
+The production Docker build includes a Node.js stage that automatically compiles frontend assets via Vite — no local Node.js installation is required.
+
 ```bash
-docker build --target app -t planka-mcp:local .
+docker build -t planka-mcp:local .
 ```

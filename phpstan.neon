@@ -1,25 +1,8 @@
 includes:
-    - vendor/phpstan/phpstan-symfony/extension.neon
-    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 8
-    phpVersion: 80300
     paths:
-        - src
-        - tests
-    treatPhpDocTypesAsCertain: false
-    ignoreErrors:
-        # dg/bypass-finals allows mocking final classes at runtime.
-        # PHPStan cannot statically verify intersection types involving final classes,
-        # so these two identifiers are suppressed in test code only.
-        -
-            identifier: property.unresolvableNativeType
-            paths:
-                - tests/
-        -
-            identifier: method.unresolvableReturnType
-            paths:
-                - tests/
-    symfony:
-        containerXmlPath: var/cache/test/App_KernelTestDebugContainer.xml
+        - app
+    level: 8
+    ignoreErrors: []

@@ -1,4 +1,13 @@
 services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   planka-mcp:
     image: ghcr.io/mintopia/planka-mcp:latest
     ports:
@@ -6,3 +15,6 @@ services:
     env_file:
       - .env.production
     restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy

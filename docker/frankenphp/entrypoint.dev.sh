@@ -6,4 +6,10 @@ if [ ! -f /app/vendor/autoload.php ]; then
     composer install --no-interaction --prefer-dist
 fi
 
+if [ ! -d /app/public/build ]; then
+    echo "public/build not found — running npm install and build..."
+    npm install --prefix /app
+    npm run build --prefix /app
+fi
+
 exec "$@"

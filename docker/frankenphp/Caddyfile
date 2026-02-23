@@ -5,16 +5,12 @@
 }
 
 :80 {
-	# Health check - no PHP
 	handle /health {
 		respond "OK" 200
 	}
 
-	# PHP application
 	handle {
 		root * /app/public
-		php_server {
-			worker /app/public/index.php 4
-		}
+		php_server
 	}
 }

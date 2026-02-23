@@ -1,6 +1,6 @@
 {
     "name": "mintopia/planka-mcp",
-    "description": "Symfony MCP server for Planka 2 API",
+    "description": "Laravel MCP server for Planka 2 API",
     "type": "project",
     "license": "MIT",
     "authors": [
@@ -12,62 +12,65 @@
     "require": {
         "php": ">=8.3",
         "ext-json": "*",
-        "nyholm/psr7": "^1.8",
-        "runtime/frankenphp-symfony": "^0.2",
-        "symfony/framework-bundle": "^7.4",
-        "symfony/http-client": "^7.4",
-        "symfony/mcp-bundle": "^0.5",
-        "symfony/mime": "^7.4",
-        "symfony/monolog-bundle": "^4.0",
-        "symfony/runtime": "^7.4",
-        "symfony/twig-bundle": "*",
-        "symfony/yaml": "^7.4"
+        "laravel/framework": "^12.0",
+        "laravel/mcp": "^0.5",
+        "laravel/octane": "^2.0",
+        "laravel/tinker": "^2.11",
+        "predis/predis": "^2.0"
     },
     "require-dev": {
-        "dg/bypass-finals": "*",
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^8.0",
         "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "phpstan/phpstan-symfony": "^2.0",
-        "phpunit/phpunit": "^11.5",
-        "symfony/browser-kit": "*",
-        "symfony/css-selector": "*",
-        "symfony/dotenv": "^7.4"
-    },
-    "config": {
-        "allow-plugins": {
-            "php-http/discovery": true,
-            "symfony/flex": true,
-            "symfony/runtime": true
-        },
-        "platform": {
-            "php": "8.3.0"
-        },
-        "sort-packages": true
+        "phpunit/phpunit": "^11.5"
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "App\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "symfony": {
-            "allow-contrib": false,
-            "require": "7.4.*"
-        },
-        "runtime": {
-            "class": "Runtime\\FrankenPhpSymfony\\Runtime"
+            "Tests\\": "tests/"
         }
     },
     "scripts": {
-        "post-install-cmd": [],
-        "post-update-cmd": [],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
         "test": "vendor/bin/phpunit",
-        "test-coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html var/coverage --coverage-clover var/coverage/clover.xml",
+        "test-coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html storage/coverage --coverage-clover storage/coverage/clover.xml",
         "analyse": "vendor/bin/phpstan analyse"
-    }
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        },
+        "platform": {
+            "php": "8.3.0"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

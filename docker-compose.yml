@@ -1,17 +1,21 @@
 services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   planka-mcp:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: docker/develop/Dockerfile
     ports:
       - "8080:80"
-    environment:
-      APP_ENV: dev
-      APP_DEBUG: 1
-      APP_SECRET: ${APP_SECRET:-dev-secret-change-for-production}
-      PLANKA_URL: ${PLANKA_URL:?PLANKA_URL is required}
-      XDEBUG_MODE: ${XDEBUG_MODE:-debug}
+    env_file: .env
     volumes:
       - .:/app
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy

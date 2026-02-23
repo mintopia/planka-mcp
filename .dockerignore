@@ -18,14 +18,16 @@ docker-compose*.yml
 # Dependency directory (rebuilt in image)
 /vendor
 
-# Symfony var directory (rebuilt in image)
-/var
+# Laravel storage (rebuilt in image)
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
 
 # Environment secrets - never bake into image
 /.env.local
 /.env.local.php
 /.env.*.local
-/config/secrets/prod/prod.decrypt.private.pem
 
 # Test and dev tooling
 /tests

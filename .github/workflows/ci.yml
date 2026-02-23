@@ -35,14 +35,23 @@ jobs:
           key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
 
       - name: Prepare test environment
         run: cp .env.test .env
-
-      - name: Warm up test cache
-        run: php bin/console cache:warmup --env=test
 
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
@@ -77,8 +86,20 @@ jobs:
           key: ${{ runner.os }}-php-8.4-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-php-8.4-composer-
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
 
       - name: Prepare test environment
         run: cp .env.test .env
@@ -89,7 +110,7 @@ jobs:
       - name: Enforce 100% coverage
         run: |
           php -r "
-          \$xml = simplexml_load_file('var/coverage/clover.xml');
+          \$xml = simplexml_load_file('storage/coverage/clover.xml');
           \$metrics = \$xml->project->metrics;
           \$total   = (int)\$metrics['statements'];
           \$covered = (int)\$metrics['coveredstatements'];

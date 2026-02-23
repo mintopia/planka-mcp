@@ -5,6 +5,7 @@ on:
     workflows: ["CI"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -50,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: app
+          file: docker/production/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

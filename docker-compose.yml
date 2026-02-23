@@ -10,26 +10,12 @@ services:
   planka-mcp:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: docker/develop/Dockerfile
     ports:
       - "8080:80"
-    environment:
-      APP_ENV: local
-      APP_DEBUG: "1"
-      APP_KEY: ${APP_KEY:-base64:placeholder-generate-with-artisan-key-generate}
-      PLANKA_URL: ${PLANKA_URL:?PLANKA_URL is required}
-      SESSION_DRIVER: redis
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      REDIS_HOST: redis
-      XDEBUG_MODE: ${XDEBUG_MODE:-debug}
-      SUBSCRIPTION_ENABLED: ${SUBSCRIPTION_ENABLED:-false}
-      PLANKA_WEBHOOK_SECRET: ${PLANKA_WEBHOOK_SECRET:-}
-      PLANKA_WEBHOOK_AUTO_REGISTER: ${PLANKA_WEBHOOK_AUTO_REGISTER:-false}
+    env_file: .env
     volumes:
       - .:/app
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       redis:
         condition: service_healthy

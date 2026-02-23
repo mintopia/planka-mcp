@@ -51,7 +51,6 @@ jobs:
         with:
           context: .
           file: docker/production/Dockerfile
-          target: app
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
